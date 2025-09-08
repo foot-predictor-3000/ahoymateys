@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Captain Turfbeard's Footy Predictions</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English&family=Pirata+One&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'pirata': ['"Pirata One"', 'cursive'],
+                        'english': ['"IM Fell English"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <link rel="manifest" href="data:application/json;base64,ew0KICAic2hvcnRfbmFtZSI6ICJGb290YmFsbFByZWRpY3RvciIsDQogICJuYW1lIjogIk9mZmxpbmUgRm9vdGJhbGwgUHJlZGljdG9yIiwNCiAgImljb25zIjogWw0KICAgIHsNCiAgICAgICJzcmMiOiAiaWNvbnMvaWNvbi0xOTIucG5nIiwNCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIsDQogICAgICAic2l6ZXMiOiAiMTkyxDE5MiINCiAgICB9LA0KICAgIHsNCiAgICAgICJzcmMiOiAiaWNvbnMvaWNvbi01MTIucG5nIiwNCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIsDQogICAgICAic2l6ZXMiOiAiNTEyeDUxMiINCiAgICB9DQogIF0sDQogICJzdGFydF91cmwiOiAiLiIsDQogICJkaXNwbGF5IjogInNtYW5kYWxvbmUiLA0KICAidGhlbWVfY29sb3IiOiAiIzAwMDAwMCIsDQogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiDQp9">
+
+    <style>
+        /* Simple loading spinner */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border-left-color: #09f;
+            animation: spin 1s ease infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Pirate theme background */
+        body {
+            background-color: #0a2d4d; /* Dark blue sea color */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200"><filter id="f" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="1" result="noise"/><feDiffuseLighting in="noise" lighting-color="%230d3a61" surfaceScale="2"><feDistantLight azimuth="45" elevation="60"/></feDiffuseLighting></filter><rect width="100%" height="100%" filter="url(%23f)"/></svg>');
+            background-attachment: fixed; /* Keep the texture fixed during scroll */
+        }
+        /* Parchment style */
+        .parchment {
+            background-color: #fdf5e6; /* A nice parchment color */
+            border: 1px solid #d2b48c; /* A tan border */
+            box-shadow: inset 0 0 8px rgba(139, 69, 19, 0.2);
+             /* Subtle fibrous texture using SVG */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="f1" x="0" y="0"><feTurbulence type="fractalNoise" baseFrequency="0.2" numOctaves="5" seed="10"/></filter><rect width="100%" height="100%" filter="url(%23f1)" opacity="0.05"/></svg>');
+        }
+    </style>
+</head>
+<body class="font-english antialiased text-gray-200">
+    <div id="root" class="container mx-auto p-4 max-w-3xl">
+        <header class="parchment rounded-lg shadow-md p-6 mb-6 text-center">
+            <h1 class="text-5xl font-pirata text-gray-900 text-center sm:text-left">Captain Turfbeard's Kraken-powered football analysis</h1>
+            <img src="https://raw.githubusercontent.com/foot-predictor-3000/Pirate_test/135608deabea9dd041654ee3a556cde4db616348/1757260212793.jpg" alt="A detailed cartoon of a pirate captain and a kraken looking at a football tactics board." class="my-4 mx-auto rounded-lg shadow-lg w-full max-w-md">
+            <p class="text-gray-600 mt-2 text-center sm:text-left">Harness the power of the ocean's smartest Kraken to consider match outcomes!<br></br>Train the Kraken's 9 brains on past results, let the Captain temper the results with the latest tavern gossip, and then see if the Quartermaster agrees with the Captain's analysis. <br></br>This be for entertainment and pirate bragging rights only, savvy? No wagering yer pieces of eight based on the Kraken's whispers!<br></br> Tip: Clear the cache before you start. Old loot in the coffers may confuse the Kraken!</p>
+        </header>
+
+        <main>
+            <div class="parchment rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-3xl font-pirata mb-2 text-gray-900">Step 1: Load the coffers</h2>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="flex-grow">
+                        <label for="league-select" class="block text-sm font-medium text-gray-700 mb-1">Which sea are we headed to, captain?</label>
+                        <select id="league-select" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 text-gray-900">
+                            <option value="E0">English Premier League</option>
+                            <option value="E1">English Championship</option>
+                            <option value="E2">English League 1</option>
+                            <option value="E3">English League 2</option>
+                            <option value="SP1">Spanish La Liga</option>
+                            <option value="D1">German Bundesliga</option>
+                            <option value="D2">German Bundesliga 2</option>
+                            <option value="I1">Italian Serie A</option>
+                            <option value="F1">French Ligue 1</option>
+                            <option value="N1">Dutch Eredivisie</option>
+                        </select>
+                    </div>
+                    <button id="fetch-data-btn" class="self-end bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Plunder The Depths for Knowledge
+                    </button>
+                </div>
+                <div id="status-area" class="mt-4 text-sm text-gray-600 h-5"></div>
+                
+                <div id="training-section" class="hidden mt-4">
+                    <button id="train-models-btn" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Awaken the Kraken
+                    </button>
+                    <div id="training-status-area" class="mt-2 text-sm text-gray-600 text-center"></div>
+                </div>
+            </div>
+
+            <div class="parchment rounded-lg shadow-md p-6">
+                <h2 class="text-3xl font-pirata mb-4 text-gray-900">Step 2: Gaze into the Abyss</h2>
+                <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Enter yer Secret Key (Gemini API Key):</label>
+                    <input type="password" id="api-key-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Your key is kept safe in the crow's nest">
+                    <p class="text-xs text-gray-500 mt-1">Needed to look up live fixtures and news. Get one from Google AI Studio, matey.</p>
+                </div>
+                <button id="find-fixtures-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-300 flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M9 9a2 2 0 114 0 2 2 0 01-4 0z" /><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0 2a10 10 0 100-20 10 10 0 000 20z" clip-rule="evenodd" /></svg>
+                    Spot Upcoming Skirmishes
+                </button>
+                <div id="gemini-status-area" class="mt-4 text-sm text-gray-600 min-h-[20px]"></div>
+
+                <!-- NEW UI STRUCTURE FOR FIXTURE SELECTION -->
+                <div id="fixtures-selection-area" class="hidden mt-4 space-y-6">
+                    <div>
+                        <h3 class="text-2xl font-pirata text-gray-800 border-b-2 border-dashed border-gray-400 pb-1 mb-3">Available Skirmishes</h3>
+                        <div id="available-fixtures-container" class="space-y-2">
+                            <!-- Available fixtures will be rendered here -->
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-pirata text-gray-800 border-b-2 border-dashed border-gray-400 pb-1 mb-3">Your Analysis Pack (<span id="pack-count">0</span>/3)</h3>
+                        <div id="analysis-pack-container" class="space-y-4">
+                            <!-- Selected fixtures for analysis will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="text-center text-xs text-gray-400 mt-8">
+            <p>Data plundered from football-data.co.uk. Predictions be for entertainment only.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const leagueSelect = document.getElementById('league-select');
+        const fetchDataBtn = document.getElementById('fetch-data-btn');
+        const statusArea = document.getElementById('status-area');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const findFixturesBtn = document.getElementById('find-fixtures-btn');
+        const geminiStatusArea = document.getElementById('gemini-status-area');
+        const trainingSection = document.getElementById('training-section');
+        const trainModelsBtn = document.getElementById('train-models-btn');
+        const trainingStatusArea = document.getElementById('training-status-area');
+        const fixturesSelectionArea = document.getElementById('fixtures-selection-area');
+        const availableFixturesContainer = document.getElementById('available-fixtures-container');
+        const analysisPackContainer = document.getElementById('analysis-pack-container');
+        const packCountSpan = document.getElementById('pack-count');
+
+        // --- Constants ---
+        const DB_NAME = 'FootballDataDB';
+        const DB_VERSION = 1;
+        const MATCHES_STORE_NAME = 'matches';
+        const H2H_MATCHES_COUNT = 5;
+        const ANALYSIS_PACK_LIMIT = 3;
+
+        // --- Global State ---
+        let db;
+        let trainingWorker;
+        let isTraining = false;
+        let modelsTrained = false;
+        let minEloRating, maxEloRating;
+        let allFoundFixtures = [];
+        let analysisPack = [];
+
+        // --- PWA Service Worker ---
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    const CACHE_NAME = 'football-predictor-v42-logic-refactor'; /* Cache version updated */
+                    const urlsToCache = ['/'];
+                    self.addEventListener('install', event => { self.skipWaiting(); event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))); });
+                    self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) )).then(() => self.clients.claim()) ); });
+                    self.addEventListener('fetch', event => { event.respondWith( caches.match(event.request).then(response => response || fetch(event.request)) ); });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).then(reg => console.log('Service worker registered.', reg)).catch(err => console.log('Service worker registration failed:', err));
+            });
+        }
+        
+        // --- Web Worker ---
+        function initWorker() {
+            const workerCode = `
+                importScripts('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js');
+                const FORM_MATCHES_COUNT = 5;
+                const H2H_MATCHES_COUNT = 5;
+                let nnModel, lrModel;
+                let teamMap, teamHistories, eloRatings, teamStrengths;
+
+                // --- ELO & POISSON Calculation ---
+                function calculateTeamStrengths(matches) {
+                    const teams = [...new Set(matches.flatMap(m => [m.HomeTeam, m.AwayTeam]))].filter(Boolean);
+                    const strengths = new Map(teams.map(team => [team, {
+                        homeAttack: 0, homeDefence: 0, awayAttack: 0, awayDefence: 0, homeGames: 0, awayGames: 0
+                    }]));
+                    let totalHomeGoals = 0, totalAwayGoals = 0, gameCount = 0;
+
+                    matches.forEach(match => {
+                        const homeGoals = parseInt(match.FTHG, 10);
+                        const awayGoals = parseInt(match.FTAG, 10);
+                        if (isNaN(homeGoals) || isNaN(awayGoals)) return;
+
+                        strengths.get(match.HomeTeam).homeAttack += homeGoals;
+                        strengths.get(match.HomeTeam).homeDefence += awayGoals;
+                        strengths.get(match.HomeTeam).homeGames++;
+                        strengths.get(match.AwayTeam).awayAttack += awayGoals;
+                        strengths.get(match.AwayTeam).awayDefence += homeGoals;
+                        strengths.get(match.AwayTeam).awayGames++;
+                        totalHomeGoals += homeGoals;
+                        totalAwayGoals += awayGoals;
+                        gameCount++;
+                    });
+
+                    const avgHomeGoals = totalHomeGoals / gameCount;
+                    const avgAwayGoals = totalAwayGoals / gameCount;
+
+                    for (const [team, stats] of strengths.entries()) {
+                        stats.homeAttack = (stats.homeAttack / stats.homeGames) / avgHomeGoals;
+                        stats.homeDefence = (stats.homeDefence / stats.homeGames) / avgAwayGoals;
+                        stats.awayAttack = (stats.awayAttack / stats.awayGames) / avgAwayGoals;
+                        stats.awayDefence = (stats.awayDefence / stats.awayGames) / avgHomeGoals;
+                    }
+                    return { strengths, avgHomeGoals, avgAwayGoals };
+                }
+                
+                function poissonProbability(k, lambda) {
+                    if (lambda < 0) return 0;
+                    const factorial = (n) => (n <= 1) ? 1 : n * factorial(n - 1);
+                    return (Math.pow(lambda, k) * Math.exp(-lambda)) / factorial(k);
+                }
+                
+                function getPoissonProbs(homeTeam, awayTeam, strengths, avgHomeGoals, avgAwayGoals) {
+                    const homeStr = strengths.get(homeTeam);
+                    const awayStr = strengths.get(awayTeam);
+                    if (!homeStr || !awayStr) return [0.33, 0.34, 0.33];
+                    
+                    const lambdaHome = homeStr.homeAttack * awayStr.awayDefence * avgHomeGoals;
+                    const lambdaAway = awayStr.awayAttack * homeStr.homeDefence * avgAwayGoals;
+
+                    const maxGoals = 5;
+                    let homeWin = 0, draw = 0, awayWin = 0;
+                    
+                    for (let i = 0; i <= maxGoals; i++) {
+                        for (let j = 0; j <= maxGoals; j++) {
+                            const prob = poissonProbability(i, lambdaHome) * poissonProbability(j, lambdaAway);
+                            if (i > j) homeWin += prob;
+                            else if (i < j) awayWin += prob;
+                            else draw += prob;
+                        }
+                    }
+                    const total = homeWin + draw + awayWin;
+                    return [homeWin/total, draw/total, awayWin/total];
+                }
+
+                function calculateEloRatings(matches) {
+                    const K = 32;
+                    const ratings = new Map();
+                    const teams = [...new Set(matches.flatMap(m => [m.HomeTeam, m.AwayTeam]))].filter(Boolean);
+                    teams.forEach(team => ratings.set(team, 1500));
+
+                    matches.forEach(match => {
+                        const R1 = ratings.get(match.HomeTeam);
+                        const R2 = ratings.get(match.AwayTeam);
+                        const E1 = 1 / (1 + 10 ** ((R2 - R1) / 400));
+                        const S1 = match.FTR === 'H' ? 1 : (match.FTR === 'D' ? 0.5 : 0);
+                        const R1_new = R1 + K * (S1 - E1);
+                        ratings.set(match.HomeTeam, R1_new);
+                        ratings.set(match.AwayTeam, R2 + K * ((1 - S1) - (1-E1)));
+                    });
+
+                    const ratingValues = Array.from(ratings.values());
+                    const minElo = Math.min(...ratingValues);
+                    const maxElo = Math.max(...ratingValues);
+                    
+                    return { ratings, minElo, maxElo };
+                }
+                
+                class StatusCallback extends tf.Callback {
+                    constructor(messagePrefix) {
+                        super();
+                        this.messagePrefix = messagePrefix;
+                    }
+                
+                    onEpochEnd(epoch, logs) {
+                        self.postMessage({ type: 'status_update', payload: \`\${this.messagePrefix} \${epoch + 1}/50\` });
+                    }
+                }
+
+                self.onmessage = async (e) => {
+                    const { type, payload } = e.data;
+                    if (type === 'train_model') {
+                        try {
+                            const { matches } = payload;
+                            self.postMessage({ type: 'status_update', payload: 'Calculating crew strength (Elo & Stats)...' });
+                            const allMatchesWithDates = matches.map(m => ({ ...m, dateObj: parseDate(m.Date), id: m.HomeTeam + m.AwayTeam + m.Date })).filter(m => m.dateObj);
+                            
+                            const { ratings, minElo, maxElo } = calculateEloRatings(allMatchesWithDates);
+                            eloRatings = ratings;
+                            const { strengths, avgHomeGoals, avgAwayGoals } = calculateTeamStrengths(allMatchesWithDates);
+                            teamStrengths = { strengths, avgHomeGoals, avgAwayGoals };
+
+                            self.postMessage({ type: 'status_update', payload: "Preparing the Kraken's meal (data processing)..." });
+                            const { features, labels, histories, currentTeamMap } = prepareData(allMatchesWithDates, eloRatings);
+                            if (!features || features.shape[0] === 0) { throw new Error("No valid training data could be generated."); }
+                            
+                            teamMap = currentTeamMap;
+                            teamHistories = histories;
+
+                            const inputShape = features.shape[1];
+                            nnModel = createNnModel(inputShape);
+                            lrModel = createLrModel(inputShape);
+                            
+                            const baseTrainingArgs = {
+                                epochs: 50,
+                                batchSize: 32,
+                                validationSplit: 0.1,
+                                verbose: 0,
+                            };
+
+                            self.postMessage({ type: 'status_update', payload: 'Kraken learning...' });
+                            await nnModel.fit(features, labels, { 
+                                ...baseTrainingArgs, 
+                                callbacks: [
+                                    tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 5 }),
+                                    new StatusCallback('Kraken devouring the data...')
+                                ] 
+                            });
+                            
+                            self.postMessage({ type: 'status_update', payload: 'Kraken thinking deeply...' });
+                            await lrModel.fit(features, labels, { 
+                                ...baseTrainingArgs, 
+                                callbacks: [
+                                    new StatusCallback('Kraken mulling it over...')
+                                ]
+                            });
+                            
+                            self.postMessage({ type: 'model_trained', payload: { minElo, maxElo } });
+                            tf.dispose([features, labels]);
+                        } catch(error) { self.postMessage({ type: 'training_error', payload: error.message + " " + error.stack }); }
+                    } else if (type === 'predict') {
+                        const { fixture } = payload;
+                        try {
+                            const officialHomeTeam = findBestTeamNameMatch(fixture.HomeTeam, teamMap);
+                            const officialAwayTeam = findBestTeamNameMatch(fixture.AwayTeam, teamMap);
+                            
+                            if (!teamMap.has(officialHomeTeam) || !teamMap.has(officialAwayTeam)) {
+                                throw new Error("Crew member not found in ship's log: '" + (!teamMap.has(officialHomeTeam) ? fixture.HomeTeam : fixture.AwayTeam) + "'. Could be a new cabin boy (promoted team).");
+                            }
+
+                            const { featureVector, reasoningStats } = createFeaturesForFixture({ HomeTeam: officialHomeTeam, AwayTeam: officialAwayTeam }, teamMap, teamHistories, eloRatings);
+                            
+                            const { nnProbs, lrProbs, poissonProbs, ensProbs } = tf.tidy(() => {
+                                const fixtureFeatures = tf.tensor2d([featureVector]);
+                                const nnLogits = nnModel.predict(fixtureFeatures);
+                                const lrLogits = lrModel.predict(fixtureFeatures);
+                                
+                                const temperature = 1.5;
+                                const nnProbsTensor = tf.softmax(tf.div(nnLogits, tf.scalar(temperature)));
+                                const lrProbsTensor = tf.softmax(tf.div(lrLogits, tf.scalar(temperature)));
+
+                                const poissonProbsArray = getPoissonProbs(officialHomeTeam, officialAwayTeam, teamStrengths.strengths, teamStrengths.avgHomeGoals, teamStrengths.avgAwayGoals);
+                                const poissonProbsTensor = tf.tensor(poissonProbsArray).reshape([1,3]);
+
+                                const nnWeight = 0.40;
+                                const lrWeight = 0.25;
+                                const poissonWeight = 0.35;
+                                const weightedNn = nnProbsTensor.mul(tf.scalar(nnWeight));
+                                const weightedLr = lrProbsTensor.mul(tf.scalar(lrWeight));
+                                const weightedPoisson = poissonProbsTensor.mul(tf.scalar(poissonWeight));
+                                const averagedProbs = tf.addN([weightedNn, weightedLr, weightedPoisson]);
+                                
+                                return { nnProbs: nnProbsTensor.dataSync(), lrProbs: lrProbsTensor.dataSync(), poissonProbs: poissonProbsArray, ensProbs: averagedProbs.dataSync() };
+                            });
+                            e.ports[0].postMessage({ type: 'prediction_result', payload: { nnProbs, lrProbs, poissonProbs, ensProbs, reasoningStats, officialHomeTeam, officialAwayTeam } });
+                        } catch (error) { e.ports[0].postMessage({ type: 'prediction_error', payload: error.message }); }
+                    }
+                };
+                
+                function findBestTeamNameMatch(name, teamMap) {
+                    const officialNames = Array.from(teamMap.keys()); const lowerName = name.toLowerCase();
+                    if (teamMap.has(name)) return name;
+                    for (const officialName of officialNames) { if (officialName.toLowerCase().includes(lowerName)) return officialName; }
+                    for (const officialName of officialNames) { if (lowerName.includes(officialName.toLowerCase())) return officialName; }
+                    let bestMatch = null; let maxScore = 0;
+                    const nameWords = new Set(lowerName.replace(/[^a-z0-9\\s]/gi, '').split(' ').filter(w => w.length > 2));
+                    for (const officialName of officialNames) {
+                        let currentScore = 0;
+                        const officialWords = new Set(officialName.toLowerCase().replace(/[^a-z0-9\\s]/gi, '').split(' ').filter(w => w.length > 2));
+                        for (const word of nameWords) { if (officialWords.has(word)) currentScore++; }
+                        if (currentScore > maxScore) { maxScore = currentScore; bestMatch = officialName; }
+                    }
+                    if (maxScore > 0) return bestMatch;
+                    console.warn('Could not find a confident match for team name: "' + name + '"');
+                    return name;
+                }
+                function parseDate(dateStr) {
+                    if (!dateStr || dateStr.length < 8) return null;
+                    if (dateStr.includes('-')) { const parts = dateStr.split('-'); if(parts.length !== 3) return null; const [year, month, day] = parts.map(p => parseInt(p, 10)); if(isNaN(year) || isNaN(month) || isNaN(day)) return null; return new Date(Date.UTC(year, month - 1, day)); } 
+                    else if (dateStr.includes('/')) { const parts = dateStr.split('/'); if(parts.length !== 3) return null; const [day, month] = parts.map(p => parseInt(p, 10)); let year = parseInt(parts[2], 10); if(isNaN(day) || isNaN(month) || isNaN(year)) return null; if (year < 100) year += 2000; return new Date(Date.UTC(year, month - 1, day)); }
+                    return null;
+                }
+                
+                function calculateH2HStats(homeTeam, awayTeam, allMatchesUpToThisPoint) {
+                    const h2hMatches = allMatchesUpToThisPoint.filter(m => (m.HomeTeam === homeTeam && m.AwayTeam === awayTeam) || (m.HomeTeam === awayTeam && m.AwayTeam === homeTeam) ).slice(-H2H_MATCHES_COUNT);
+                    let homeTeamWins = 0, awayTeamWins = 0, draws = 0;
+                    
+                    h2hMatches.forEach(m => {
+                        if (m.FTR === 'D') { draws++; }
+                        else if ((m.FTR === 'H' && m.HomeTeam === homeTeam) || (m.FTR === 'A' && m.AwayTeam === homeTeam)) { homeTeamWins++; }
+                        else { awayTeamWins++; }
+                    });
+                    const alpha = 1; const totalMatches = h2hMatches.length; const smoothedTotal = totalMatches + (alpha * 3);
+                    const smoothedHomeWinRate = (homeTeamWins + alpha) / smoothedTotal;
+                    const smoothedDrawRate = (draws + alpha) / smoothedTotal;
+                    const smoothedAwayWinRate = (awayTeamWins + alpha) / smoothedTotal;
+                    return { homeTeamWins, draws, awayTeamWins, totalMatches, featureHomeWin: smoothedHomeWinRate, featureDraw: smoothedDrawRate, featureAwayWin: smoothedAwayWinRate };
+                }
+                
+                function calculateTeamStats(teamName, pastMatches, venue = 'Overall') {
+                    let relevantMatches = pastMatches;
+                    if (venue === 'Home') { relevantMatches = pastMatches.filter(m => m.HomeTeam === teamName); } 
+                    else if (venue === 'Away') { relevantMatches = pastMatches.filter(m => m.AwayTeam === teamName); }
+                    
+                    const lastNMatches = relevantMatches.slice(-FORM_MATCHES_COUNT);
+                    if (lastNMatches.length === 0) return { gamesPlayed: 0, formPoints: 0, avgGoalsScored: 0, avgGoalsConceded: 0, avgSTF: 0, avgSTA: 0 };
+                    
+                    const weights = Array.from({length: lastNMatches.length}, (_, i) => 0.6 + (0.4 * (i / (lastNMatches.length -1 || 1))));
+                    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+
+                    let weightedStats = { formPoints: 0, goalsScored: 0, goalsConceded: 0, shotsOnTargetFor: 0, shotsOnTargetAgainst: 0 };
+
+                    lastNMatches.forEach((match, i) => {
+                        const weight = weights[i];
+                        const FTHG = parseInt(match.FTHG, 10); const FTAG = parseInt(match.FTAG, 10);
+                        const HST = parseInt(match.HST, 10); const AST = parseInt(match.AST, 10);
+                        if (isNaN(FTHG) || isNaN(FTAG) || isNaN(HST) || isNaN(AST)) return;
+
+                        if (match.HomeTeam === teamName) {
+                            weightedStats.goalsScored += FTHG * weight;
+                            weightedStats.goalsConceded += FTAG * weight;
+                            weightedStats.shotsOnTargetFor += HST * weight;
+                            weightedStats.shotsOnTargetAgainst += AST * weight;
+                            if (match.FTR === 'H') weightedStats.formPoints += 3 * weight;
+                            if (match.FTR === 'D') weightedStats.formPoints += 1 * weight;
+                        } else {
+                            weightedStats.goalsScored += FTAG * weight;
+                            weightedStats.goalsConceded += FTHG * weight;
+                            weightedStats.shotsOnTargetFor += AST * weight;
+                            weightedStats.shotsOnTargetAgainst += HST * weight;
+                            if (match.FTR === 'A') weightedStats.formPoints += 3 * weight;
+                            if (match.FTR === 'D') weightedStats.formPoints += 1 * weight;
+                        }
+                    });
+
+                    return {
+                        gamesPlayed: relevantMatches.length,
+                        formPoints: totalWeight > 0 ? (weightedStats.formPoints / (totalWeight * 3)) : 0,
+                        avgGoalsScored: totalWeight > 0 ? weightedStats.goalsScored / totalWeight : 0,
+                        avgGoalsConceded: totalWeight > 0 ? weightedStats.goalsConceded / totalWeight : 0,
+                        avgSTF: totalWeight > 0 ? weightedStats.shotsOnTargetFor / totalWeight : 0,
+                        avgSTA: totalWeight > 0 ? weightedStats.shotsOnTargetAgainst / totalWeight : 0
+                    };
+                }
+
+                function getFeatureVector(match, teamMap, homeStats, awayStats, h2hStats, homeElo, awayElo) {
+                    const numTeams = teamMap.size;
+                    const homeTeamVec = Array(numTeams).fill(0); if (teamMap.has(match.HomeTeam)) homeTeamVec[teamMap.get(match.HomeTeam)] = 1;
+                    const awayTeamVec = Array(numTeams).fill(0); if (teamMap.has(match.AwayTeam)) awayTeamVec[teamMap.get(match.AwayTeam)] = 1;
+                    const h2hWeight = 0.5;
+                    return [ ...homeTeamVec, ...awayTeamVec, 
+                        homeStats.formPoints, homeStats.avgGoalsScored, homeStats.avgGoalsConceded, homeStats.avgSTF, homeStats.avgSTA,
+                        awayStats.formPoints, awayStats.avgGoalsScored, awayStats.avgGoalsConceded, awayStats.avgSTF, awayStats.avgSTA,
+                        h2hStats.featureHomeWin * h2hWeight, h2hStats.featureDraw * h2hWeight, h2hStats.featureAwayWin * h2hWeight,
+                        homeElo / 2000, awayElo / 2000
+                    ];
+                }
+                function prepareData(matches, eloRatings) {
+                    matches.sort((a, b) => a.dateObj - b.dateObj);
+                    const teams = [...new Set(matches.flatMap(m => [m.HomeTeam, m.AwayTeam]))].filter(Boolean);
+                    const currentTeamMap = new Map(teams.map((team, i) => [team, i]));
+                    const histories = new Map(teams.map(team => [team, []]));
+                    matches.forEach(m => {
+                        if (m.HomeTeam && histories.has(m.HomeTeam)) histories.get(m.HomeTeam).push(m);
+                        if (m.AwayTeam && histories.has(m.AwayTeam)) histories.get(m.AwayTeam).push(m);
+                    });
+                    const featureData = []; const labelData = [];
+                    for (let i = 0; i < matches.length; i++) {
+                        const match = matches[i];
+                        if (!match.HomeTeam || !match.AwayTeam || !match.FTR || !match.FTHG || !match.FTAG) continue;
+                        
+                        const homeElo = eloRatings.get(match.HomeTeam) || 1500;
+                        const awayElo = eloRatings.get(match.AwayTeam) || 1500;
+
+                        const homeTeamHistory = histories.get(match.HomeTeam).filter(m => m.dateObj < match.dateObj);
+                        const awayTeamHistory = histories.get(match.AwayTeam).filter(m => m.dateObj < match.dateObj);
+                        const homeStats = calculateTeamStats(match.HomeTeam, homeTeamHistory, 'Home');
+                        const awayStats = calculateTeamStats(match.AwayTeam, awayTeamHistory, 'Away');
+                        
+                        if (homeStats.gamesPlayed < FORM_MATCHES_COUNT || awayStats.gamesPlayed < FORM_MATCHES_COUNT) continue;
+                        const h2hStats = calculateH2HStats(match.HomeTeam, match.AwayTeam, matches.slice(0, i));
+                        const currentFeature = getFeatureVector(match, currentTeamMap, homeStats, awayStats, h2hStats, homeElo, awayElo);
+                        
+                        let currentLabel;
+                        if (match.FTR === 'H') currentLabel = [1, 0, 0];
+                        else if (match.FTR === 'D') currentLabel = [0, 1, 0];
+                        else currentLabel = [0, 0, 1];
+                        
+                        featureData.push(currentFeature);
+                        labelData.push(currentLabel);
+                    }
+                    return { features: tf.tensor2d(featureData), labels: tf.tensor2d(labelData), histories, currentTeamMap };
+                }
+                
+                function createFeaturesForFixture(fixture, teamMap, histories, eloRatings) {
+                    const homeElo = eloRatings.get(fixture.HomeTeam) || 1500;
+                    const awayElo = eloRatings.get(fixture.AwayTeam) || 1500;
+
+                    const uniqueMatches = new Map();
+                    [...histories.values()].flat().forEach(m => uniqueMatches.set(m.id, m));
+                    const allHistoricalMatches = Array.from(uniqueMatches.values()).sort((a,b) => a.dateObj - b.dateObj);
+                    
+                    const homeTeamHistory = histories.get(fixture.HomeTeam) || [];
+                    const awayTeamHistory = histories.get(fixture.AwayTeam) || [];
+                    
+                    const homeStats = calculateTeamStats(fixture.HomeTeam, homeTeamHistory, 'Home');
+                    const awayStats = calculateTeamStats(fixture.AwayTeam, awayTeamHistory, 'Away');
+                    const homeOverallStats = calculateTeamStats(fixture.HomeTeam, homeTeamHistory, 'Overall');
+                    const awayOverallStats = calculateTeamStats(fixture.AwayTeam, awayTeamHistory, 'Overall');
+                    const h2hStats = calculateH2HStats(fixture.HomeTeam, fixture.AwayTeam, allHistoricalMatches);
+                    const reasoningStats = { homeStats, awayStats, h2hStats, homeOverallStats, awayOverallStats, homeElo, awayElo };
+                    const featureVector = getFeatureVector({HomeTeam: fixture.HomeTeam, AwayTeam: fixture.AwayTeam}, teamMap, homeStats, awayStats, h2hStats, homeElo, awayElo);
+                    return { featureVector, reasoningStats };
+                }
+                function createNnModel(inputShape) {
+                    const model = tf.sequential();
+                    model.add(tf.layers.dense({ inputShape: [inputShape], units: 128, activation: 'relu', kernelRegularizer: tf.regularizers.l2({l2: 0.0001}) }));
+                    model.add(tf.layers.dropout({ rate: 0.5 }));
+                    model.add(tf.layers.dense({ units: 64, activation: 'relu', kernelRegularizer: tf.regularizers.l2({l2: 0.0001}) }));
+                    model.add(tf.layers.dropout({ rate: 0.5 }));
+                    model.add(tf.layers.dense({ units: 3 })); 
+                    model.compile({ optimizer: tf.train.adam(0.0001), loss: 'categoricalCrossentropy' });
+                    return model;
+                }
+                
+                function createLrModel(inputShape) {
+                    const model = tf.sequential();
+                    model.add(tf.layers.dense({ inputShape: [inputShape], units: 3 }));
+                    model.compile({ optimizer: tf.train.adam(0.0001), loss: 'categoricalCrossentropy' });
+                    return model;
+                }
+            `;
+            const blob = new Blob([workerCode], { type: 'application/javascript' });
+            const workerUrl = URL.createObjectURL(blob);
+            trainingWorker = new Worker(workerUrl);
+            
+            trainingWorker.onmessage = (e) => {
+                const { type, payload } = e.data;
+                if (type === 'model_trained') {
+                    isTraining = false;
+                    modelsTrained = true;
+                    if (payload) {
+                        minEloRating = payload.minElo;
+                        maxEloRating = payload.maxElo;
+                    }
+                    trainingStatusArea.innerHTML = '<span class="text-green-600 font-semibold">The Kraken is ready!</span>';
+                    trainModelsBtn.disabled = true;
+                    trainModelsBtn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                    trainModelsBtn.classList.remove('bg-orange-500', 'hover:bg-orange-600');
+                    document.querySelectorAll('.predict-btn').forEach(btn => btn.disabled = false);
+                } else if (type === 'status_update') {
+                    trainingStatusArea.innerHTML = `<div class="flex items-center justify-center"><div class="spinner mr-2"></div><p>${payload}</p></div>`;
+                } else if (type === 'training_error') {
+                    isTraining = false;
+                    trainingStatusArea.innerHTML = `<span class="text-red-500">Training failed, Captain! ${payload}</span>`;
+                    trainModelsBtn.disabled = false;
+                }
+            };
+        }
+
+        // --- IndexedDB ---
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (event) => { const db = event.target.result; if (!db.objectStoreNames.contains(MATCHES_STORE_NAME)) { db.createObjectStore(MATCHES_STORE_NAME, { keyPath: 'id', autoIncrement: true }); } };
+                request.onsuccess = (event) => { db = event.target.result; resolve(db); };
+                request.onerror = (event) => { console.error('Database error:', event.target.errorCode); reject(event.target.errorCode); };
+            });
+        }
+        
+        // --- Data Fetching & Processing ---
+        function getSeasonCodes() {
+            const NUMBER_OF_SEASONS = 6; 
+            const seasonCodes = []; 
+            const now = new Date(); 
+            const year = now.getFullYear(); 
+            const month = now.getMonth() + 1;
+            let currentSeasonEndYear = month >= 8 ? year + 1 : year; 
+            const formatYear = (y) => y.toString().slice(-2);
+            for (let i = 0; i < NUMBER_OF_SEASONS; i++) { 
+                const seasonEndYear = currentSeasonEndYear - i; 
+                const seasonStartYear = seasonEndYear - 1; 
+                seasonCodes.push(formatYear(seasonStartYear) + formatYear(seasonEndYear)); 
+            }
+            return seasonCodes.reverse();
+        }
+        
+        async function fetchAndStoreData() {
+            setStatus('Sailing the digital seas for data...', true);
+            trainingSection.classList.add('hidden');
+            const league = leagueSelect.value;
+            const seasonCodes = getSeasonCodes();
+            const proxy = 'https://corsproxy.io/?';
+            let allMatches = []; let successfulFetches = 0;
+            for (const season of seasonCodes) {
+                const url = `${proxy}${encodeURIComponent(`https://www.football-data.co.uk/mmz4281/${season}/${league}.csv`)}`;
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) { const csvText = await response.text(); allMatches.push(...parseCSV(csvText)); successfulFetches++; }
+                } catch (error) { console.error(`Error fetching data for season ${season}:`, error); }
+            }
+            if (successfulFetches === 0) { setStatus(`Failed to plunder any data. Check connection, matey.`, false); return; }
+            modelsTrained = false;
+            await saveDataToDB(allMatches);
+            setStatus(`Hoarded ${allMatches.length} match records from ${successfulFetches} seasons. Ready to train the beast.`, false);
+            trainingSection.classList.remove('hidden');
+            trainModelsBtn.disabled = false;
+            trainModelsBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
+            trainModelsBtn.classList.add('bg-orange-500', 'hover:bg-orange-600');
+            trainingStatusArea.textContent = 'The Kraken needs training on this new loot.';
+        }
+
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== ''); if (lines.length < 2) return [];
+            const headers = lines[0].replace(/^\uFEFF/, '').split(',').map(h => h.trim());
+            return lines.slice(1).map(line => { const values = line.split(','); const match = {}; headers.forEach((header, i) => { match[header] = values[i] ? values[i].trim() : ''; }); return match; });
+        }
+
+        function saveDataToDB(matches) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([MATCHES_STORE_NAME], 'readwrite');
+                const store = transaction.objectStore(MATCHES_STORE_NAME);
+                store.clear(); let counter = 0;
+                matches.forEach(match => store.add({ ...match, id: counter++ }));
+                transaction.oncomplete = () => { resolve(); };
+                transaction.onerror = (event) => { console.error('Transaction error:', event.target.error); reject(event.target.error); };
+            });
+        }
+        
+        function getAllMatchesFromDB() {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([MATCHES_STORE_NAME], 'readonly');
+                const store = transaction.objectStore(MATCHES_STORE_NAME);
+                const request = store.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = (event) => reject(event.target.error);
+            });
+        }
+
+        // --- UI Updates ---
+        function setStatus(message, isLoading) {
+            statusArea.innerHTML = isLoading ? `<div class="flex items-center"><div class="spinner mr-2"></div><p>${message}</p></div>` : `<p>${message}</p>`;
+            fetchDataBtn.disabled = isLoading;
+        }
+
+        function setGeminiStatus(message, isLoading) {
+            geminiStatusArea.innerHTML = isLoading ? `<div class="flex items-center"><div class="spinner mr-2"></div><p>${message}</p></div>` : `<p>${message}</p>`;
+            findFixturesBtn.disabled = isLoading;
+        }
+        
+        function eloToGrade(elo, minElo, maxElo) {
+            if (typeof elo !== 'number' || typeof minElo !== 'number' || typeof maxElo !== 'number' || minElo === maxElo) {
+                return '';
+            }
+            const normalized = (elo - minElo) / (maxElo - minElo);
+
+            if (normalized > 0.95) return 'A+';
+            if (normalized > 0.85) return 'A';
+            if (normalized > 0.75) return 'A-';
+            if (normalized > 0.65) return 'B+';
+            if (normalized > 0.55) return 'B';
+            if (normalized > 0.45) return 'B-';
+            if (normalized > 0.35) return 'C+';
+            if (normalized > 0.25) return 'C';
+            if (normalized > 0.15) return 'C-';
+            return 'D';
+        }
+        
+        // --- Gemini API Integration & Fixture Management ---
+        async function findFixturesWithGemini() {
+            const apiKey = apiKeyInput.value;
+            if (!apiKey) { setGeminiStatus('<span class="text-red-500">Ye need a secret key to use the spyglass!</span>', false); return; }
+            const selectedLeagueName = leagueSelect.options[leagueSelect.selectedIndex].text;
+            setGeminiStatus('Scanning the horizon for fixtures...', true);
+            fixturesSelectionArea.classList.add('hidden');
+            const prompt = `Using Google Search, find all upcoming league football fixtures for the '${selectedLeagueName}' scheduled within the next 7 days from today, ${new Date().toDateString()}. You MUST provide the response as a single, valid JSON array of objects. Do not include any explanatory text before or after the JSON array. Each object in the array must have these three keys: "HomeTeam", "AwayTeam", and "MatchDate" (formatted as "YYYY-MM-DD"). If your search finds no fixtures, you MUST return an empty JSON array: [].`;
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }], tools: [{ "google_search": {} }] };
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) { throw new Error(`API Error: ${(await response.json()).error.message}`); }
+                const result = await response.json();
+                const textResponse = result.candidates[0].content.parts[0].text;
+                const jsonString = textResponse.replace(/```json|```/g, '').trim();
+                const fixtures = JSON.parse(jsonString);
+                
+                allFoundFixtures = fixtures.map((f, i) => ({...f, id: i})); // Give each fixture a unique ID
+                analysisPack = []; // Reset the pack on new search
+                renderFixtureUI();
+                
+                setGeminiStatus(`Spotted ${fixtures.length} voyages on the horizon. Choose up to ${ANALYSIS_PACK_LIMIT} to analyze.`, false);
+                fixturesSelectionArea.classList.remove('hidden');
+
+            } catch (error) {
+                console.error('Gemini API Error:', error);
+                setGeminiStatus(`<span class="text-red-500">Spyglass is cracked! Error finding fixtures. Check key and try again.</span>`, false);
+                fixturesSelectionArea.classList.add('hidden');
+            }
+        }
+
+        function addFixtureToPack(fixtureId) {
+            if (analysisPack.length >= ANALYSIS_PACK_LIMIT) {
+                alert(`Yer pack is full, Captain! You can only analyze ${ANALYSIS_PACK_LIMIT} skirmishes at a time.`);
+                return;
+            }
+            const fixtureToAdd = allFoundFixtures.find(f => f.id === fixtureId);
+            if (fixtureToAdd) {
+                analysisPack.push(fixtureToAdd);
+                renderFixtureUI();
+            }
+        }
+        
+        function removeFixtureFromPack(fixtureId) {
+            analysisPack = analysisPack.filter(f => f.id !== fixtureId);
+            renderFixtureUI();
+        }
+
+        function renderFixtureUI() {
+            // Filter available fixtures: those in allFoundFixtures but NOT in analysisPack
+            const availableFixtures = allFoundFixtures.filter(f => !analysisPack.some(p => p.id === f.id));
+            
+            // Render Available Fixtures
+            if (availableFixtures.length === 0) {
+                 availableFixturesContainer.innerHTML = '<p class="text-gray-500 text-sm">All available skirmishes have been added to your pack.</p>';
+            } else {
+                availableFixturesContainer.innerHTML = availableFixtures.sort((a,b) => new Date(a.MatchDate) - new Date(b.MatchDate)).map(fixture => {
+                    const dateObj = new Date(fixture.MatchDate); dateObj.setUTCHours(12);
+                    const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                    return `
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-md border">
+                            <div class="text-sm">
+                                <p class="font-bold text-gray-800">${fixture.HomeTeam} vs ${fixture.AwayTeam}</p>
+                                <p class="text-xs text-gray-500">${formattedDate}</p>
+                            </div>
+                            <button onclick="addFixtureToPack(${fixture.id})" class="add-btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-md text-xs whitespace-nowrap" ${analysisPack.length >= ANALYSIS_PACK_LIMIT ? 'disabled' : ''}>+ Add</button>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            // Render Analysis Pack
+             packCountSpan.textContent = analysisPack.length;
+            if (analysisPack.length === 0) {
+                analysisPackContainer.innerHTML = '<p class="text-gray-500 text-sm">Your analysis pack is empty. Add a skirmish to begin.</p>';
+            } else {
+                 analysisPackContainer.innerHTML = analysisPack.sort((a,b) => new Date(a.MatchDate) - new Date(b.MatchDate)).map((fixture, index) => {
+                    const homeTeam = fixture.HomeTeam; const awayTeam = fixture.AwayTeam;
+                    const dateObj = new Date(fixture.MatchDate); dateObj.setUTCHours(12);
+                    const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+                    const homeTeamJs = homeTeam.replace(/'/g, "\\'"); const awayTeamJs = awayTeam.replace(/'/g, "\\'");
+                    return `
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="flex items-center justify-between gap-2">
+                                <div class="text-center sm:text-left flex-grow cursor-pointer" onclick="toggleFixtureDetails(${index})">
+                                    <p class="font-bold text-lg text-gray-900">${homeTeam} vs ${awayTeam}</p>
+                                    <p class="text-sm text-gray-500">${formattedDate}</p>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button id="predict-btn-${index}" onclick="runPrediction('${homeTeamJs}', '${awayTeamJs}', ${index})" class="predict-btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-3 rounded-md text-sm whitespace-nowrap" ${!modelsTrained ? 'disabled' : ''}>Forecast</button>
+                                    <button onclick="removeFixtureFromPack(${fixture.id})" class="text-red-500 hover:text-red-700 p-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clip-rule="evenodd" /></svg>
+                                    </button>
+                                    <svg id="toggle-icon-${index}" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 transition-transform duration-300 cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor" onclick="toggleFixtureDetails(${index})">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div id="toggle-content-${index}" class="hidden space-y-4 pt-4 mt-4 border-t border-gray-200">
+                                <div id="prediction-${index}" class="text-sm font-semibold text-center w-full text-gray-800" data-prediction-values=""></div>
+                                <div id="reasoning-${index}" class="w-full hidden"></div>
+                                <div id="refine-btn-container-${index}" class="mt-2 text-center hidden">
+                                    <button id="refine-btn-${index}" onclick="refinePrediction('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Hit up the Taverns and gather the latest pirate gossip!</button>
+                                </div>
+                                <div id="refined-section-${index}" class="hidden w-full" data-captain-intel=""></div>
+                                <div id="quartermaster-btn-container-${index}" class="mt-2 text-center hidden">
+                                    <button id="quartermaster-btn-${index}" onclick="getQuartermasterReview('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-md transition duration-300">See Quartermaster's Ledger</button>
+                                </div>
+                                <div id="quartermaster-section-${index}" class="hidden w-full"></div>
+                            </div>
+                        </div>
+                    `;
+                 }).join('');
+            }
+
+            // Disable add buttons if pack is full
+            document.querySelectorAll('.add-btn').forEach(btn => {
+                btn.disabled = analysisPack.length >= ANALYSIS_PACK_LIMIT;
+                if (btn.disabled) {
+                    btn.classList.add('bg-gray-400', 'cursor-not-allowed');
+                    btn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+                }
+            });
+        }
+
+        function toggleFixtureDetails(index) {
+            const content = document.getElementById(`toggle-content-${index}`);
+            const icon = document.getElementById(`toggle-icon-${index}`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            } else {
+                content.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // --- Machine Learning ---
+        async function trainModels() {
+            if(isTraining) return;
+            isTraining = true;
+            trainModelsBtn.disabled = true;
+            const historicalMatches = await getAllMatchesFromDB();
+            if (historicalMatches.length < 50) { 
+                trainingStatusArea.innerHTML = '<span class="text-red-500">Not enough grog (data) to train the beast! Fetch more records.</span>';
+                isTraining = false;
+                trainModelsBtn.disabled = false;
+                return; 
+            }
+            trainingWorker.postMessage({ type: 'train_model', payload: {matches: historicalMatches} });
+        }
+
+
+        async function runPrediction(homeTeam, awayTeam, index) {
+            const content = document.getElementById(`toggle-content-${index}`);
+            const icon = document.getElementById(`toggle-icon-${index}`);
+
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.style.transform = 'rotate(180deg)';
+            }
+
+            const predictionEl = document.getElementById(`prediction-${index}`);
+            predictionEl.innerHTML = '<div class="flex items-center justify-center"><div class="spinner"></div></div>';
+            
+            document.getElementById(`reasoning-${index}`).classList.add('hidden');
+            document.getElementById(`refine-btn-container-${index}`).classList.add('hidden');
+            document.getElementById(`refined-section-${index}`).classList.add('hidden');
+            document.getElementById(`quartermaster-btn-container-${index}`).classList.add('hidden');
+            document.getElementById(`quartermaster-section-${index}`).classList.add('hidden');
+
+            if (!modelsTrained) {
+                predictionEl.innerHTML = '<span class="text-orange-500">Ye must awaken the Kraken first!</span>';
+                return;
+            }
+            
+            const workerRequest = { type: 'predict', payload: { fixture: { HomeTeam: homeTeam, AwayTeam: awayTeam } } };
+            const result = await new Promise(resolve => {
+                const channel = new MessageChannel();
+                trainingWorker.postMessage(workerRequest, [channel.port2]);
+                channel.port1.onmessage = e => resolve(e.data);
+            });
+
+            if (result.type === 'prediction_error') {
+                predictionEl.innerHTML = `<span class="text-red-500 text-xs">${result.payload}</span>`;
+                return;
+            }
+
+            const { nnProbs, lrProbs, poissonProbs, ensProbs, reasoningStats, officialHomeTeam, officialAwayTeam } = result.payload;
+            displayStatisticalReasoning(index, officialHomeTeam, officialAwayTeam, reasoningStats);
+            
+            const [nnH, nnD, nnA] = nnProbs;
+            const [lrH, lrD, lrA] = lrProbs;
+            const [poiH, poiD, poiA] = poissonProbs;
+            const [ensH, ensD, ensA] = ensProbs;
+
+            predictionEl.dataset.predictionValues = JSON.stringify([ensH, ensD, ensA]);
+            predictionEl.innerHTML = `
+                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-center text-xs mb-2">
+                    <div><span class="font-bold">The Kraken's hearts predict:</span> ${Math.round(nnH*100)}|${Math.round(nnD*100)}|${Math.round(nnA*100)}%</div>
+                    <div><span class="font-bold">The Kraken's brains predict:</span> ${Math.round(lrH*100)}|${Math.round(lrD*100)}|${Math.round(lrA*100)}%</div>
+                    <div><span class="font-bold">The Kraken's guts predict:</span> ${Math.round(poiH*100)}|${Math.round(poiD*100)}|${Math.round(poiA*100)}%</div>
+                    <div class="font-bold">Kraken's overall feeling: ${Math.round(ensH*100)}|${Math.round(ensD*100)}|${Math.round(ensA*100)}%</div>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2.5 flex overflow-hidden border border-gray-300" title="Kraken's Call: H ${Math.round(ensH*100)}% | D ${Math.round(ensD*100)}% | A ${Math.round(ensA*100)}%">
+                    <div class="bg-blue-500 h-full" style="width: ${ensH * 100}%"></div>
+                    <div class="bg-gray-500 h-full" style="width: ${ensD * 100}%"></div>
+                    <div class="bg-red-500 h-full" style="width: ${ensA * 100}%"></div>
+                </div>
+            `;
+            
+            document.getElementById(`reasoning-${index}`).classList.remove('hidden');
+            document.getElementById(`refine-btn-container-${index}`).classList.remove('hidden');
+        }
+
+        function displayStatisticalReasoning(index, homeTeam, awayTeam, stats) {
+            const { homeStats, awayStats, h2hStats, homeOverallStats, awayOverallStats, homeElo, awayElo } = stats;
+            const { homeTeamWins, draws, awayTeamWins, totalMatches } = h2hStats;
+            const homeShort = homeTeam.substring(0, 10) + (homeTeam.length > 10 ? '...' : '');
+            const awayShort = awayTeam.substring(0, 10) + (awayTeam.length > 10 ? '...' : '');
+            
+            const homeGrade = eloToGrade(homeElo, minEloRating, maxEloRating);
+            const awayGrade = eloToGrade(awayElo, minEloRating, maxEloRating);
+
+            const html = `
+                <div class="space-y-2 text-xs text-gray-700">
+                    <h4 class="font-semibold text-gray-800 text-sm">Statistical Snapshot</h4>
+                    <div class="grid grid-cols-3 gap-2 text-center"> <div class="font-bold">Metric</div> <div class="font-bold">${homeShort}</div> <div class="font-bold">${awayShort}</div> </div>
+                    <div class="grid grid-cols-3 gap-2 text-center bg-gray-100 p-1 rounded-md">
+                        <div>Crew Shipshape Rating</div> 
+                        <div>${Math.round(homeElo)} <span class="font-bold text-blue-600">${homeGrade}</span></div> 
+                        <div>${Math.round(awayElo)} <span class="font-bold text-red-600">${awayGrade}</span></div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center bg-gray-100 p-1 rounded-md"> <div class="text-left font-semibold col-span-3">Overall Form (Last 5 Voyages)</div>
+                        <div>Form (Pts/15)</div> <div>${Math.round(homeOverallStats.formPoints * 15)}</div> <div>${Math.round(awayOverallStats.formPoints * 15)}</div>
+                        <div>Avg. Cannons Fired</div> <div>${homeOverallStats.avgGoalsScored.toFixed(2)}</div> <div>${awayOverallStats.avgGoalsScored.toFixed(2)}</div>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center bg-gray-100 p-1 rounded-md"> <div class="text-left font-semibold col-span-3">Venue Form (Last 5 Home/Away)</div>
+                        <div>Form (Pts/15)</div> <div>${Math.round(homeStats.formPoints * 15)}</div> <div>${Math.round(awayStats.formPoints * 15)}</div>
+                        <div>Avg. Cannons Fired</div> <div>${homeStats.avgGoalsScored.toFixed(2)}</div> <div>${awayStats.avgGoalsScored.toFixed(2)}</div>
+                        <div>Avg. Breaches Taken</div> <div>${homeStats.avgGoalsConceded.toFixed(2)}</div> <div>${awayStats.avgGoalsConceded.toFixed(2)}</div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-2 text-center bg-gray-100 p-1 rounded-md"> <div>Past Scraps (Last ${totalMatches}): <b>${homeTeamWins}</b> (${homeShort}) - <b>${draws}</b> (Draw) - <b>${awayTeamWins}</b> (${awayShort})</div> </div>
+                </div>
+            `;
+            const reasoningEl = document.getElementById(`reasoning-${index}`);
+            reasoningEl.innerHTML = html;
+        }
+        
+        async function refinePrediction(homeTeam, awayTeam, index) {
+            const apiKey = apiKeyInput.value;
+            if (!apiKey) { setGeminiStatus('<span class="text-red-500">Ye need a secret key to use the spyglass!</span>', false); return; }
+            
+            const refinedSection = document.getElementById(`refined-section-${index}`);
+            
+            refinedSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>Listening to tavern rumors...</div>';
+            refinedSection.classList.remove('hidden');
+            
+            document.getElementById(`quartermaster-btn-container-${index}`).classList.add('hidden');
+            document.getElementById(`quartermaster-section-${index}`).classList.add('hidden');
+
+            const predictionEl = document.getElementById(`prediction-${index}`);
+            const initialProbs = JSON.parse(predictionEl.dataset.predictionValues);
+            if (!initialProbs) { refinedSection.innerHTML = "<p class='text-red-500'>Get the Kraken's initial forecast first, matey.</p>"; return; }
+
+            const [p_h, p_d, p_a] = initialProbs;
+            const confidence = Math.max(...initialProbs) - Math.min(...initialProbs);
+            const dynamicAdjustmentFactor = 0.30 * (1 - confidence); 
+            
+            const statsString = `H: ${Math.round(p_h*100)}%, D: ${Math.round(p_d*100)}%, A: ${Math.round(p_a*100)}%`;
+            
+            const prompt = `
+            **Persona Instruction:** You are Captain Turfbeard, a gruff, knowledgeable, and slightly comical pirate captain who is also a football expert. Adopt this persona for all text fields in your response. Keep your analysis sharp, but deliver it with pirate flair (e.g., "scurvy dogs," "shiver me timbers," "pieces of eight").
+
+            **Task:** Analyze the upcoming football match: ${homeTeam} vs ${awayTeam}.
+            The Kraken's statistical model provides a baseline prediction of: ${statsString}.
+            
+            **CRITICAL: Perform a Google Search for a holistic view.** Your search and summary must go beyond just injuries. Synthesize the latest information on:
+            1.  **Team News & Injuries:** Who is out and how important are they?
+            2.  **Current Form & Morale:** What is the narrative? Are they playing with confidence? Is the manager under pressure?
+            3.  **Head-to-Head History:** Is there a psychological edge based on recent encounters?
+            4.  **Betting Odds:** What do the bookmakers think?
+            
+            **CRITICAL:** When identifying key players, you MUST verify they are currently on the team's active roster for the present-day season. Do not list players who have recently transferred away from the club.
+
+            **Output Format & Logic:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure.
+            **Crucially, your "finalJustification" MUST be logically consistent with your "sentimentAdjustment" value.**
+            - If sentimentAdjustment is **positive**, your justification must explain why the news favors the **home team**.
+            - If sentimentAdjustment is **negative**, your justification must explain why the news favors the **away team**.
+            - If sentimentAdjustment is **zero**, your justification must explain why the news is balanced.
+
+            The object must contain these exact keys:
+            {
+              "newsSummary": "A concise summary of key news, form, and context for both crews, written in character.",
+              "odds": { "homeWin": "string decimal odds or 'N/A'", "draw": "string decimal odds or 'N/A'", "awayWin": "string decimal odds or 'N/A'" },
+              "sentimentAdjustment": 0.0,
+              "keyPlayers": {
+                "home": "Identify a key player for the home team who is **fit to play** and whose strengths are suited to the tie. **Do not select a player who is known to be injured or suspended.** Explain why in pirate character.",
+                "away": "Identify a key player for the away team who is **fit to play** and whose strengths are suited to the tie. **Do not select a player who is known to be injured or suspended.** Explain why in pirate character."
+              },
+              "tacticalPreview": "A short, one-sentence tactical preview of the match, as a pirate pundit would say it.",
+              "finalJustification": "A single sentence explaining the final outcome based on your synthesized news. It MUST start by stating if the live news and odds SUPPORT or CONTRADICT the Kraken's prediction, and the reasoning must align with your sentimentAdjustment value."
+            }
+            `;
+
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }], tools: [{ "google_search": {} }] };
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) { throw new Error(`API Error: ${(await response.json()).error.message}`); }
+                const result = await response.json();
+                const textResponse = result.candidates[0].content.parts[0].text;
+                const jsonString = textResponse.replace(/```json|```/g, '').trim();
+                const analysis = JSON.parse(jsonString);
+                
+                refinedSection.dataset.captainIntel = JSON.stringify(analysis);
+                
+                const sentimentAdjustment = parseFloat(analysis.sentimentAdjustment) || 0.0;
+                const adjustment = sentimentAdjustment * dynamicAdjustmentFactor; 
+                
+                let new_p_h = p_h + adjustment; let new_p_a = p_a - adjustment; let new_p_d = p_d - Math.abs(adjustment) * 0.5;
+                const clipped_p_h = Math.max(0.01, Math.min(0.99, new_p_h)); const clipped_p_a = Math.max(0.01, Math.min(0.99, new_p_a)); const clipped_p_d = Math.max(0.01, Math.min(0.99, new_p_d));
+                const total = clipped_p_h + clipped_p_a + clipped_p_d;
+                const final_p_h = clipped_p_h / total; const final_p_d = clipped_p_d / total; const final_p_a = clipped_p_a / total;
+                
+                let valueHtml = '';
+                try {
+                    const implied_h = analysis.odds.homeWin !== "N/A" && parseFloat(analysis.odds.homeWin) > 0 ? 1 / parseFloat(analysis.odds.homeWin) : null;
+                    const implied_d = analysis.odds.draw !== "N/A" && parseFloat(analysis.odds.draw) > 0 ? 1 / parseFloat(analysis.odds.draw) : null;
+                    const implied_a = analysis.odds.awayWin !== "N/A" && parseFloat(analysis.odds.awayWin) > 0 ? 1 / parseFloat(analysis.odds.awayWin) : null;
+
+                    const values = [
+                        { outcome: 'Home Win', value: final_p_h - implied_h, prob: final_p_h, implied: implied_h },
+                        { outcome: 'Draw', value: final_p_d - implied_d, prob: final_p_d, implied: implied_d },
+                        { outcome: 'Away Win', value: final_p_a - implied_a, prob: final_p_a, implied: implied_a }
+                    ].filter(v => v.value > -Infinity && v.implied !== null);
+
+                    if (values.length > 0) {
+                        const bestValue = values.reduce((best, current) => current.value > best.value ? current : best, {value: -Infinity});
+                        const valueThreshold = 0.05;
+
+                        const finalProbs = { 'Home Win': final_p_h, 'Draw': final_p_d, 'Away Win': final_p_a };
+                        const mostLikelyOutcome = Object.keys(finalProbs).reduce((a, b) => finalProbs[a] > finalProbs[b] ? a : b);
+
+                        if (bestValue.value > valueThreshold && bestValue.outcome === mostLikelyOutcome) {
+                            valueHtml = `<p>The Captain spies treasure in the <b>${bestValue.outcome}</b> bet!</p>
+                                         <p class="text-xs">The Captain's probability (${(bestValue.prob * 100).toFixed(1)}%) be <b>${(bestValue.value * 100).toFixed(1)}%</b> higher than the bookies' offering (${(bestValue.implied * 100).toFixed(1)}%).</p>`;
+                        } else if (bestValue.value > valueThreshold && bestValue.outcome !== mostLikelyOutcome) {
+                             valueHtml = `<p>The bookies' odds on a <b>${bestValue.outcome}</b> look generous, but the Captain's compass still points towards a <b>${mostLikelyOutcome}</b>.</p>`;
+                        } else {
+                            valueHtml = "<p>No treasure here, matey. The bookies' odds be tight.</p>";
+                        }
+                    } else {
+                        valueHtml = '<p>Could not perform value analysis. The odds charts be missing.</p>';
+                    }
+                } catch (e) { console.error("Value analysis error:", e); valueHtml = '<p>Error during value analysis.</p>'; }
+
+                refinedSection.innerHTML = `
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-gray-100 p-3 rounded-md">
+                            <h4 class="font-semibold text-gray-800 mb-2">Captain's Match Insights</h4>
+                            <div class="mb-3">
+                                <p class="font-bold text-gray-700">Initial Outlook</p>
+                                <p class="text-gray-600 italic">"${analysis.tacticalPreview || 'Not available.'}"</p>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                <div>
+                                    <p class="font-bold text-gray-700">Star Buccaneer (Home)</p>
+                                    <p class="text-gray-600">${analysis.keyPlayers.home || 'Not identified.'}</p>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-gray-700">Star Buccaneer (Away)</p>
+                                    <p class="text-gray-600">${analysis.keyPlayers.away || 'Not identified.'}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div> <h4 class="font-semibold text-gray-800">Tavern Rumors:</h4> <p class="text-gray-600 italic">${analysis.newsSummary}</p> </div>
+                        <div class="flex justify-between items-center bg-gray-100 p-2 rounded-md"> <span class="font-semibold text-gray-800">Bookie Odds:</span> <span class="text-right text-gray-900"> H: <b class="text-blue-600">${analysis.odds.homeWin}</b>, D: <b class="text-gray-600">${analysis.odds.draw}</b>, A: <b class="text-red-600">${analysis.odds.awayWin}</b> </span> </div>
+                        <div class="space-y-2 bg-gray-100 p-2 rounded-md">
+                            <div class="flex justify-between items-center"> <span class="font-semibold text-gray-800">Kraken's Prediction:</span> <span class="font-bold text-right text-gray-900"> H: <b class="text-blue-600">${Math.round(p_h*100)}%</b>, D: <b class="text-gray-600">${Math.round(p_d*100)}%</b>, A: <b class="text-red-600">${Math.round(p_a*100)}%</b> </span> </div>
+                            <div class="flex justify-between items-center"> <span class="font-semibold text-green-800">Captain's Refined Prediction:</span> <span class="font-bold text-right text-gray-900"> H: <b class="text-blue-600">${Math.round(final_p_h*100)}%</b>, D: <b class="text-gray-600">${Math.round(final_p_d*100)}%</b>, A: <b class="text-red-600">${Math.round(final_p_a*100)}%</b> </span> </div>
+                        </div>
+                        <div class="bg-teal-100 border-l-4 border-teal-500 text-teal-700 p-3 rounded-md">
+                            <h4 class="font-bold">Treasure Hunt</h4>
+                            ${valueHtml}
+                        </div>
+                        <div class="bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 p-3 rounded-md">
+                            <h4 class="font-bold">Final Word from the Captain</h4>
+                            <p class="italic">${analysis.finalJustification || "No justification provided."}</p>
+                        </div>
+                    </div>
+                `;
+                
+                document.getElementById(`quartermaster-btn-container-${index}`).classList.remove('hidden');
+
+            } catch(e) { 
+                console.error("Refinement Error:", e); 
+                refinedSection.innerHTML = '<p class="text-red-500">Whoops, the captain sank a few too many ales and failed to interpret the rumours. Sober up and try listening again!</p>'; 
+            }
+        }
+        
+        async function getQuartermasterReview(homeTeam, awayTeam, index) {
+            const apiKey = apiKeyInput.value;
+            if (!apiKey) { 
+                setGeminiStatus('<span class="text-red-500">The Quartermaster needs the secret key to open his ledger!</span>', false); 
+                return; 
+            }
+            
+            const quartermasterSection = document.getElementById(`quartermaster-section-${index}`);
+            quartermasterSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Quartermaster is reviewing the reports...</div>';
+            quartermasterSection.classList.remove('hidden');
+
+            const predictionEl = document.getElementById(`prediction-${index}`);
+            const refinedSection = document.getElementById(`refined-section-${index}`);
+            const krakenProbsJSON = predictionEl.dataset.predictionValues;
+            const captainIntelJSON = refinedSection.dataset.captainIntel;
+
+            if (!krakenProbsJSON || !captainIntelJSON) {
+                quartermasterSection.innerHTML = "<p class='text-red-500'>The Quartermaster needs both the Kraken's forecast and the Captain's intel first.</p>";
+                return;
+            }
+
+            const krakenProbs = JSON.parse(krakenProbsJSON);
+            const captainIntel = JSON.parse(captainIntelJSON);
+            const statsString = `Home Win: ${Math.round(krakenProbs[0]*100)}%, Draw: ${Math.round(krakenProbs[1]*100)}%, Away Win: ${Math.round(krakenProbs[2]*100)}%`;
+
+            const prompt = `
+            **Persona:** You are a ship's Quartermaster, a pragmatic and analytical logistics expert. Your tone is level-headed, clear, and devoid of the Captain's flair. You deal in facts and balanced assessments.
+
+            **Task:** You have received two intelligence reports for the upcoming football match: ${homeTeam} vs ${awayTeam}. Your job is to synthesize them into a final, definitive briefing.
+
+            **Report 1: The Kraken's Forecast (Purely Statistical Model):**
+            - Probabilities: ${statsString}
+
+            **Report 2: The Captain's Intel (Live News, Sentiment, and Intuition from Google Search):**
+            - ${JSON.stringify(captainIntel, null, 2)}
+
+            **Your Analysis Must Include:**
+            1.  **Synthesis:** Directly compare the statistical data with the Captain's qualitative report. To form your final verdict, you must weigh both the final probabilities presented by the Captain and his qualitative reasoning. Do the injuries, form, and odds justify the Captain's final stance?
+            2.  **Final Verdict:** State the most likely outcome (e.g., "Home Win," "Draw," "Away Win").
+            3.  **Confidence Level:** Assign a confidence level to your verdict. You MUST use one of these five options: "Very High," "High," "Medium," "Low," or "Very Low."
+            4.  **Predicted Scoreline:** Based on your Final Verdict, provide a plausible final score that is consistent with it (e.g., if the verdict is a Home Win, the score must be a home win).
+            5.  **Risk Assessment:** Briefly state the primary risk or potential for an upset (e.g., "The key risk is the away team's star striker returning from injury.").
+
+            **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure. The object must contain these exact keys:
+            {
+              "synthesis": "Your concise analysis comparing the two reports.",
+              "finalVerdict": "The most likely outcome.",
+              "confidence": "Very High, High, Medium, Low, or Very Low.",
+              "predictedScoreline": "Your score prediction that matches the verdict.",
+              "riskAssessment": "A brief statement on the primary risk."
+            }
+            `;
+
+            try {
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+                const payload = { contents: [{ parts: [{ text: prompt }] }] }; 
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) { throw new Error(`API Error: ${(await response.json()).error.message}`); }
+                const result = await response.json();
+                const textResponse = result.candidates[0].content.parts[0].text;
+                const jsonString = textResponse.replace(/```json|```/g, '').trim();
+                const review = JSON.parse(jsonString);
+
+                let confidenceColor = 'text-gray-700';
+                if (review.confidence === 'Very High') confidenceColor = 'text-green-700';
+                else if (review.confidence === 'High') confidenceColor = 'text-green-600';
+                else if (review.confidence === 'Medium') confidenceColor = 'text-orange-600';
+                else if (review.confidence === 'Low') confidenceColor = 'text-red-600';
+                else if (review.confidence === 'Very Low') confidenceColor = 'text-red-700';
+
+                quartermasterSection.innerHTML = `
+                    <div class="space-y-3 text-sm bg-yellow-50 p-3 rounded-md border border-yellow-200 shadow">
+                        <h4 class="font-bold text-gray-800 text-base font-pirata tracking-wide">Quartermaster's Ledger</h4>
+                        <div>
+                            <p class="font-semibold text-gray-700">Final thoughts:</p>
+                            <p class="text-gray-600 italic">"${review.synthesis}"</p>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                            <div class="bg-white p-2 rounded shadow-sm border border-gray-200">
+                                <p class="text-xs font-bold text-gray-500 uppercase">Final Verdict</p>
+                                <p class="text-lg font-bold text-gray-800">${review.finalVerdict}</p>
+                            </div>
+                            <div class="bg-white p-2 rounded shadow-sm border border-gray-200">
+                                <p class="text-xs font-bold text-gray-500 uppercase">Predicted Score</p>
+                                <p class="text-lg font-bold text-gray-800">${review.predictedScoreline}</p>
+                            </div>
+                            <div class="bg-white p-2 rounded shadow-sm border border-gray-200">
+                                <p class="text-xs font-bold text-gray-500 uppercase">Confidence</p>
+                                <p class="text-lg font-bold ${confidenceColor}">${review.confidence}</p>
+                            </div>
+                             <div class="bg-white p-2 rounded shadow-sm border border-gray-200 col-span-2 sm:col-span-1">
+                                 <p class="text-xs font-bold text-gray-500 uppercase">Primary Risk</p>
+                                 <p class="text-gray-600 text-xs mt-1 pt-1">${review.riskAssessment}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            } catch(e) { 
+                console.error("Quartermaster Error:", e); 
+                quartermasterSection.innerHTML = '<p class="text-red-500">The Quartermaster dropped his inkwell and could not complete the ledger.</p>'; 
+            }
+        }
+
+        // --- Event Listeners & Initialization ---
+        fetchDataBtn.addEventListener('click', fetchAndStoreData);
+        findFixturesBtn.addEventListener('click', findFixturesWithGemini);
+        trainModelsBtn.addEventListener('click', trainModels);
+
+        window.addEventListener('DOMContentLoaded', async () => {
+            await initDB();
+            initWorker();
+            setStatus('Choose yer ocean and plunder the depths.', false);
+            apiKeyInput.value = localStorage.getItem('geminiApiKey') || '';
+        });
+        apiKeyInput.addEventListener('keyup', () => {
+            localStorage.setItem('geminiApiKey', apiKeyInput.value);
+        });
+    </script>
+</body>
+</html>
+
