@@ -171,7 +171,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
-                    const CACHE_NAME = 'football-predictor-v45-final-logic'; /* Cache version updated */
+                    const CACHE_NAME = 'football-predictor-v48-final-polish'; /* Cache version updated */
                     const urlsToCache = ['/'];
                     self.addEventListener('install', event => { self.skipWaiting(); event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))); });
                     self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) )).then(() => self.clients.claim()) ); });
@@ -970,7 +970,11 @@
             3.  **Head-to-Head History:** Is there a psychological edge based on recent encounters?
             4.  **Betting Odds:** What do the bookmakers think? This is a key piece of intelligence.
             
-            **ABSOLUTELY CRITICAL:** Your reputation depends on accurate scouting. Before selecting a 'Star Buccaneer', you must be 100% certain they are fit to play. If your search reveals ANY mention of a recent injury, a 'late fitness test', or 'doubtful' status for a player, you are FORBIDDEN from selecting them. You MUST choose a different player who is confirmed to be fully fit and likely to start. Do not list players who have recently transferred away.
+            **CRITICAL TACTICAL LINK:** Your choice for 'Star Buccaneer' for each team MUST be directly justified by the 'tacticalPreview' you provide. For example, if your outlook is about counter-attacks, you must select a fast forward or a long-passing midfielder and explain how they enable that specific tactic.
+
+            **ABSOLUTELY CRITICAL - ZERO TOLERANCE POLICY:** Your reputation as a scout is on the line. Before selecting a 'Star Buccaneer', you must be 100% certain of two things:
+            1. **CURRENT CLUB:** They play for the specified team in the current season (e.g., as of September 2025). You must verify they have not been recently transferred or loaned out. Factual errors on club affiliation are unacceptable.
+            2. **FITNESS:** They are fully fit to play. If your search reveals ANY mention of a recent injury, 'late fitness test', or 'doubtful' status, you are FORBIDDEN from selecting them. You MUST choose a different, unequivocally fit player.
 
             **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure. You are providing a report, not a final prediction.
             The object must contain these exact keys:
@@ -978,8 +982,8 @@
               "newsSummary": "A concise summary of all key intelligence (form, injuries, morale, H2H), written in character.",
               "odds": { "homeWin": "string decimal odds or 'N/A'", "draw": "string decimal odds or 'N/A'", "awayWin": "string decimal odds or 'N/A'" },
               "keyPlayers": {
-                "home": "Identify a key player for the home team whose strengths are suited to the tie. Explain why in pirate character.",
-                "away": "Identify a key player for the away team whose strengths are suited to the tie. Explain why in pirate character."
+                "home": "Identify a key player for the home team and explain how their strengths are suited to the specific tactical outlook you provided.",
+                "away": "Identify a key player for the away team and explain how their strengths are suited to the specific tactical outlook you provided."
               },
               "tacticalPreview": "A short, one-sentence tactical preview of the match, as a pirate pundit would say it."
             }
@@ -1057,7 +1061,7 @@
             const prompt = `
             **Your Role:** You are the ship's Quartermaster, a pragmatic and analytical logistics expert. Your tone is level-headed, clear, and devoid of the Captain's flair. You are the final decision-maker. 
 
-            **Guiding Principles:** Your analysis must be balanced. Use the betting odds as a market anchor, but do not follow them blindly. Your primary value is in identifying when the Captain's qualitative intel (e.g., injuries, morale) justifies a deviation from the market odds. Remember to consider squad depth; a long injury list for a top-tier club is significant, but may not be as catastrophic as it would be for a smaller club with fewer quality replacements. Your final probabilities should reflect this nuanced judgment.
+            **Guiding Principles:** Your analysis must be balanced. Use the betting odds as a market anchor, but do not follow them blindly. Your primary value is in identifying when the Captain's qualitative intel (e.g., injuries, morale) justifies a deviation from the market odds. Remember to consider squad depth; a long injury list for a top-tier club is significant, but may not be as catastrophic as it would be for a smaller club with fewer quality replacements. Your final probabilities and confidence should reflect this nuanced judgment.
 
             **Task:** You have received two intelligence reports for the upcoming football match: ${homeTeam} vs ${awayTeam}. Your job is to synthesize them into a final, definitive briefing.
 
@@ -1071,7 +1075,7 @@
             1.  **Synthesis:** Directly compare the Kraken's raw statistics with the Captain's qualitative report. Explain how you are weighing these, often conflicting, pieces of information to arrive at your final conclusion. Justify any significant deviation from the market odds.
             2.  **Final Probabilities:** Take the Kraken's probabilities as a baseline. Based on your synthesis of the Captain's report, provide your final, adjusted probabilities for the match outcome. The sum of probabilities must equal 1.0.
             3.  **Final Verdict:** Based on your final probabilities, state the most likely outcome.
-            4.  **Confidence Level:** Assign a confidence level to your verdict.
+            4.  **Confidence Level:** Assign a confidence level to your verdict. You MUST use one of these five pirate-themed options: "Sure as the Tides" (Very High), "Favourable Winds" (High), "Choppy Waters" (Medium), "Against the Wind" (Low), or "A Long Shot for the Loot" (Very Low). Your choice MUST be consistent with the dominance implied by your scoreline prediction (e.g., a 3-0 prediction warrants a high confidence level like 'Sure as the Tides').
             5.  **Predicted Scoreline:** Provide a plausible final score consistent with your Final Verdict.
             6.  **Risk Assessment:** Briefly state the primary risk to your verdict.
 
@@ -1080,7 +1084,7 @@
               "synthesis": "Your concise analysis comparing the two reports and justifying your final decision.",
               "finalProbabilities": { "home": 0.0, "draw": 0.0, "away": 0.0 },
               "finalVerdict": "The most likely outcome (Home Win, Draw, or Away Win).",
-              "confidence": "Very High, High, Medium, Low, or Very Low.",
+              "confidence": "One of the five pirate-themed phrases.",
               "predictedScoreline": "Your score prediction that matches the verdict.",
               "riskAssessment": "A brief statement on the primary risk."
             }
@@ -1097,11 +1101,11 @@
                 const review = JSON.parse(jsonString);
 
                 let confidenceColor = 'text-gray-700';
-                if (review.confidence === 'Very High') confidenceColor = 'text-green-700';
-                else if (review.confidence === 'High') confidenceColor = 'text-green-600';
-                else if (review.confidence === 'Medium') confidenceColor = 'text-orange-600';
-                else if (review.confidence === 'Low') confidenceColor = 'text-red-600';
-                else if (review.confidence === 'Very Low') confidenceColor = 'text-red-700';
+                if (review.confidence === 'Sure as the Tides') confidenceColor = 'text-green-700';
+                else if (review.confidence === 'Favourable Winds') confidenceColor = 'text-green-600';
+                else if (review.confidence === 'Choppy Waters') confidenceColor = 'text-orange-600';
+                else if (review.confidence === 'Against the Wind') confidenceColor = 'text-red-600';
+                else if (review.confidence === 'A Long Shot for the Loot') confidenceColor = 'text-red-700';
 
                 const { home, draw, away } = review.finalProbabilities;
 
@@ -1164,4 +1168,5 @@
     </script>
 </body>
 </html>
+
 
