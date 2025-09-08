@@ -171,7 +171,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
-                    const CACHE_NAME = 'football-predictor-v48-final-polish'; /* Cache version updated */
+                    const CACHE_NAME = 'football-predictor-v52-final-fixes'; /* Cache version updated */
                     const urlsToCache = ['/'];
                     self.addEventListener('install', event => { self.skipWaiting(); event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))); });
                     self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) )).then(() => self.clients.claim()) ); });
@@ -191,6 +191,19 @@
                 const H2H_MATCHES_COUNT = 5;
                 let nnModel, lrModel;
                 let teamMap, teamHistories, eloRatings, teamStrengths;
+
+                // --- Team Name Alias Map ---
+                const TEAM_NAME_ALIASES = new Map([
+                    ['Wolverhampton Wanderers', 'Wolves'],
+                    ['Man Utd', 'Man United'],
+                    ['Manchester United', 'Man United'],
+                    ['Tottenham Hotspur', 'Tottenham'],
+                    ['West Bromwich Albion', 'West Brom'],
+                    ['Nottingham Forest', "Nott'm Forest"],
+                    ['Sheffield Wednesday', 'Sheff Wed'],
+                    ['Queens Park Rangers', 'QPR'],
+                    ['Brighton & Hove Albion', 'Brighton'],
+                ]);
 
                 // --- ELO & POISSON Calculation ---
                 function calculateTeamStrengths(matches) {
@@ -382,8 +395,17 @@
                 };
                 
                 function findBestTeamNameMatch(name, teamMap) {
-                    const officialNames = Array.from(teamMap.keys()); const lowerName = name.toLowerCase();
+                    // 1. Direct match
                     if (teamMap.has(name)) return name;
+
+                    // 2. Alias map lookup
+                    if (TEAM_NAME_ALIASES.has(name)) {
+                        const alias = TEAM_NAME_ALIASES.get(name);
+                        if (teamMap.has(alias)) return alias;
+                    }
+                    
+                    // 3. Fuzzy matching (fallbacks)
+                    const officialNames = Array.from(teamMap.keys()); const lowerName = name.toLowerCase();
                     for (const officialName of officialNames) { if (officialName.toLowerCase().includes(lowerName)) return officialName; }
                     for (const officialName of officialNames) { if (lowerName.includes(officialName.toLowerCase())) return officialName; }
                     let bestMatch = null; let maxScore = 0;
@@ -395,7 +417,8 @@
                         if (currentScore > maxScore) { maxScore = currentScore; bestMatch = officialName; }
                     }
                     if (maxScore > 0) return bestMatch;
-                    console.warn('Could not find a confident match for team name: "' + name + '"');
+                    
+                    // If all else fails, return the original name and let the error handler catch it.
                     return name;
                 }
                 function parseDate(dateStr) {
@@ -594,17 +617,26 @@
         
         // --- Data Fetching & Processing ---
         function getSeasonCodes() {
-            const NUMBER_OF_SEASONS = 6; 
-            const seasonCodes = []; 
-            const now = new Date(); 
-            const year = now.getFullYear(); 
-            const month = now.getMonth() + 1;
-            let currentSeasonEndYear = month >= 8 ? year + 1 : year; 
+            const NUMBER_OF_SEASONS = 6;
+            const seasonCodes = [];
+            const now = new Date();
+            let currentYear = now.getFullYear();
+            let currentSeasonEndYear;
+
+            // A European football season typically starts in August (month 7) and ends the following May/June.
+            if (now.getMonth() >= 7) { // We are in the start of a new season (Aug - Dec)
+                currentSeasonEndYear = currentYear + 1;
+            } else { // We are in the end of a season (Jan - July)
+                currentSeasonEndYear = currentYear;
+            }
+            
             const formatYear = (y) => y.toString().slice(-2);
-            for (let i = 0; i < NUMBER_OF_SEASONS; i++) { 
-                const seasonEndYear = currentSeasonEndYear - i; 
-                const seasonStartYear = seasonEndYear - 1; 
-                seasonCodes.push(formatYear(seasonStartYear) + formatYear(seasonEndYear)); 
+
+            // We want the file for the current season, plus the 5 before it.
+            for (let i = 0; i < NUMBER_OF_SEASONS; i++) {
+                const seasonEndYear = currentSeasonEndYear - i;
+                const seasonStartYear = seasonEndYear - 1;
+                seasonCodes.push(formatYear(seasonStartYear) + formatYear(seasonEndYear));
             }
             return seasonCodes.reverse();
         }
@@ -620,13 +652,19 @@
                 const url = `${proxy}${encodeURIComponent(`https://www.football-data.co.uk/mmz4281/${season}/${league}.csv`)}`;
                 try {
                     const response = await fetch(url);
-                    if (response.ok) { const csvText = await response.text(); allMatches.push(...parseCSV(csvText)); successfulFetches++; }
+                    if (response.ok) { 
+                        const csvText = await response.text(); 
+                        allMatches.push(...parseCSV(csvText)); 
+                        successfulFetches++; 
+                    } else {
+                        console.warn(`Could not fetch data for season ${season}. It may not be available at the source.`);
+                    }
                 } catch (error) { console.error(`Error fetching data for season ${season}:`, error); }
             }
             if (successfulFetches === 0) { setStatus(`Failed to plunder any data. Check connection, matey.`, false); return; }
             modelsTrained = false;
             await saveDataToDB(allMatches);
-            setStatus(`Hoarded ${allMatches.length} match records from ${successfulFetches} seasons. Ready to train the beast.`, false);
+            setStatus(`Hoarded ${allMatches.length} match records from ${successfulFetches} of ${seasonCodes.length} seasons checked.`, false);
             trainingSection.classList.remove('hidden');
             trainModelsBtn.disabled = false;
             trainModelsBtn.classList.remove('bg-gray-400', 'cursor-not-allowed');
@@ -644,7 +682,8 @@
             return new Promise((resolve, reject) => {
                 const transaction = db.transaction([MATCHES_STORE_NAME], 'readwrite');
                 const store = transaction.objectStore(MATCHES_STORE_NAME);
-                store.clear(); let counter = 0;
+                store.clear(); // This is critical - it prevents data contamination between league searches.
+                let counter = 0;
                 matches.forEach(match => store.add({ ...match, id: counter++ }));
                 transaction.oncomplete = () => { resolve(); };
                 transaction.onerror = (event) => { console.error('Transaction error:', event.target.error); reject(event.target.error); };
@@ -972,7 +1011,7 @@
             
             **CRITICAL TACTICAL LINK:** Your choice for 'Star Buccaneer' for each team MUST be directly justified by the 'tacticalPreview' you provide. For example, if your outlook is about counter-attacks, you must select a fast forward or a long-passing midfielder and explain how they enable that specific tactic.
 
-            **ABSOLUTELY CRITICAL - ZERO TOLERANCE POLICY:** Your reputation as a scout is on the line. Before selecting a 'Star Buccaneer', you must be 100% certain of two things:
+            **ABSOLUTELY CRITICAL - ZERO TOLERANCE POLICY:** Your reputation as a scout is on the line. Before selecting a 'Star Buccanear', you must be 100% certain of two things:
             1. **CURRENT CLUB:** They play for the specified team in the current season (e.g., as of September 2025). You must verify they have not been recently transferred or loaned out. Factual errors on club affiliation are unacceptable.
             2. **FITNESS:** They are fully fit to play. If your search reveals ANY mention of a recent injury, 'late fitness test', or 'doubtful' status, you are FORBIDDEN from selecting them. You MUST choose a different, unequivocally fit player.
 
