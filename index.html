@@ -56,9 +56,9 @@
 <body class="font-english antialiased text-gray-200">
     <div id="root" class="container mx-auto p-4 max-w-3xl">
         <header class="parchment rounded-lg shadow-md p-6 mb-6 text-center">
-            <h1 class="text-5xl font-pirata text-gray-900 text-center sm:text-left">Captain Turfbeard's Kraken-powered football analysis</h1>
+            <h1 class="text-5xl font-pirata text-gray-900 text-center sm:text-left">Captain Turfbeard's Footy Predictions</h1>
             <img src="https://raw.githubusercontent.com/foot-predictor-3000/Pirate_test/135608deabea9dd041654ee3a556cde4db616348/1757260212793.jpg" alt="A detailed cartoon of a pirate captain and a kraken looking at a football tactics board." class="my-4 mx-auto rounded-lg shadow-lg w-full max-w-md">
-            <p class="text-gray-600 mt-2 text-center sm:text-left">Harness the power of the ocean's smartest Kraken to consider match outcomes!<br></br>Train the Kraken's 9 brains on past results, let the Captain temper the results with the latest tavern gossip, and then see if the Quartermaster agrees with the Captain's analysis. <br></br>This be for entertainment and pirate bragging rights only, savvy? No wagering yer pieces of eight based on the Kraken's whispers!<br></br> Tip: Clear the cache before you start. Old loot in the coffers may confuse the Kraken!</p>
+            <p class="text-gray-600 mt-2 text-center sm:text-left">Harness the power of the ocean's smartest Kraken to consider match outcomes!<br></br>Train the Kraken's 9 brains on past results, let the Captain gather the latest tavern gossip, and then see if the Quartermaster agrees with the analysis. <br></br>This be for entertainment and pirate bragging rights only, savvy? No wagering yer pieces of eight based on these whispers!<br></br> Tip: Clear the cache before you start. Old loot in the coffers may confuse the Kraken!</p>
         </header>
 
         <main>
@@ -99,7 +99,7 @@
             </div>
 
             <div class="parchment rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-pirata mb-4 text-gray-900">Step 2: Gaze into the Abyss</h2>
+                <h2 class="text-3xl font-pirata mb-4 text-gray-900">Step 2: Chart the Waters</h2>
                 <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Enter yer Secret Key (Gemini API Key):</label>
                     <input type="password" id="api-key-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Your key is kept safe in the crow's nest">
@@ -171,7 +171,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
-                    const CACHE_NAME = 'football-predictor-v42-logic-refactor'; /* Cache version updated */
+                    const CACHE_NAME = 'football-predictor-v45-final-logic'; /* Cache version updated */
                     const urlsToCache = ['/'];
                     self.addEventListener('install', event => { self.skipWaiting(); event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))); });
                     self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) )).then(() => self.clients.claim()) ); });
@@ -793,11 +793,11 @@
                                 <div id="prediction-${index}" class="text-sm font-semibold text-center w-full text-gray-800" data-prediction-values=""></div>
                                 <div id="reasoning-${index}" class="w-full hidden"></div>
                                 <div id="refine-btn-container-${index}" class="mt-2 text-center hidden">
-                                    <button id="refine-btn-${index}" onclick="refinePrediction('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Hit up the Taverns and gather the latest pirate gossip!</button>
+                                    <button id="refine-btn-${index}" onclick="refinePrediction('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Gather Tavern Gossip</button>
                                 </div>
                                 <div id="refined-section-${index}" class="hidden w-full" data-captain-intel=""></div>
                                 <div id="quartermaster-btn-container-${index}" class="mt-2 text-center hidden">
-                                    <button id="quartermaster-btn-${index}" onclick="getQuartermasterReview('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-md transition duration-300">See Quartermaster's Ledger</button>
+                                    <button id="quartermaster-btn-${index}" onclick="getQuartermasterReview('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-md transition duration-300">Consult the Quartermaster</button>
                                 </div>
                                 <div id="quartermaster-section-${index}" class="hidden w-full"></div>
                             </div>
@@ -890,16 +890,18 @@
 
             predictionEl.dataset.predictionValues = JSON.stringify([ensH, ensD, ensA]);
             predictionEl.innerHTML = `
-                <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-center text-xs mb-2">
-                    <div><span class="font-bold">The Kraken's hearts predict:</span> ${Math.round(nnH*100)}|${Math.round(nnD*100)}|${Math.round(nnA*100)}%</div>
-                    <div><span class="font-bold">The Kraken's brains predict:</span> ${Math.round(lrH*100)}|${Math.round(lrD*100)}|${Math.round(lrA*100)}%</div>
-                    <div><span class="font-bold">The Kraken's guts predict:</span> ${Math.round(poiH*100)}|${Math.round(poiD*100)}|${Math.round(poiA*100)}%</div>
-                    <div class="font-bold">Kraken's overall feeling: ${Math.round(ensH*100)}|${Math.round(ensD*100)}|${Math.round(ensA*100)}%</div>
+                <div class="grid grid-cols-3 gap-x-2 gap-y-1 text-center text-xs mb-3 text-gray-600">
+                    <div><span class="font-semibold">Hearts:</span> ${Math.round(nnH*100)}|${Math.round(nnD*100)}|${Math.round(nnA*100)}%</div>
+                    <div><span class="font-semibold">Brains:</span> ${Math.round(lrH*100)}|${Math.round(lrD*100)}|${Math.round(lrA*100)}%</div>
+                    <div><span class="font-semibold">Guts:</span> ${Math.round(poiH*100)}|${Math.round(poiD*100)}|${Math.round(poiA*100)}%</div>
                 </div>
-                <div class="w-full bg-gray-200 rounded-full h-2.5 flex overflow-hidden border border-gray-300" title="Kraken's Call: H ${Math.round(ensH*100)}% | D ${Math.round(ensD*100)}% | A ${Math.round(ensA*100)}%">
-                    <div class="bg-blue-500 h-full" style="width: ${ensH * 100}%"></div>
-                    <div class="bg-gray-500 h-full" style="width: ${ensD * 100}%"></div>
-                    <div class="bg-red-500 h-full" style="width: ${ensA * 100}%"></div>
+                <div class="text-center mb-2">
+                     <p class="font-pirata text-lg text-gray-800 tracking-wider">Kraken's Baseline Forecast</p>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-4 flex overflow-hidden border border-gray-300 text-white text-xs font-bold items-center" title="Kraken's Call: H ${Math.round(ensH*100)}% | D ${Math.round(ensD*100)}% | A ${Math.round(ensA*100)}%">
+                    <div class="bg-blue-600 h-full flex items-center justify-center" style="width: ${ensH * 100}%">${Math.round(ensH*100)}%</div>
+                    <div class="bg-gray-500 h-full flex items-center justify-center" style="width: ${ensD * 100}%">${Math.round(ensD*100)}%</div>
+                    <div class="bg-red-600 h-full flex items-center justify-center" style="width: ${ensA * 100}%">${Math.round(ensA*100)}%</div>
                 </div>
             `;
             
@@ -947,7 +949,7 @@
             
             const refinedSection = document.getElementById(`refined-section-${index}`);
             
-            refinedSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>Listening to tavern rumors...</div>';
+            refinedSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Captain is gathering rumors...</div>';
             refinedSection.classList.remove('hidden');
             
             document.getElementById(`quartermaster-btn-container-${index}`).classList.add('hidden');
@@ -956,44 +958,30 @@
             const predictionEl = document.getElementById(`prediction-${index}`);
             const initialProbs = JSON.parse(predictionEl.dataset.predictionValues);
             if (!initialProbs) { refinedSection.innerHTML = "<p class='text-red-500'>Get the Kraken's initial forecast first, matey.</p>"; return; }
-
-            const [p_h, p_d, p_a] = initialProbs;
-            const confidence = Math.max(...initialProbs) - Math.min(...initialProbs);
-            const dynamicAdjustmentFactor = 0.30 * (1 - confidence); 
-            
-            const statsString = `H: ${Math.round(p_h*100)}%, D: ${Math.round(p_d*100)}%, A: ${Math.round(p_a*100)}%`;
             
             const prompt = `
-            **Persona Instruction:** You are Captain Turfbeard, a gruff, knowledgeable, and slightly comical pirate captain who is also a football expert. Adopt this persona for all text fields in your response. Keep your analysis sharp, but deliver it with pirate flair (e.g., "scurvy dogs," "shiver me timbers," "pieces of eight").
+            **Persona:** You are Captain Turfbeard, a gruff, knowledgeable, and slightly comical pirate captain who is also a football expert. Your job is to be the scout who gathers qualitative intelligence.
 
-            **Task:** Analyze the upcoming football match: ${homeTeam} vs ${awayTeam}.
-            The Kraken's statistical model provides a baseline prediction of: ${statsString}.
+            **Task:** Provide a qualitative intelligence report for the upcoming football match: ${homeTeam} vs ${awayTeam}.
             
             **CRITICAL: Perform a Google Search for a holistic view.** Your search and summary must go beyond just injuries. Synthesize the latest information on:
             1.  **Team News & Injuries:** Who is out and how important are they?
             2.  **Current Form & Morale:** What is the narrative? Are they playing with confidence? Is the manager under pressure?
             3.  **Head-to-Head History:** Is there a psychological edge based on recent encounters?
-            4.  **Betting Odds:** What do the bookmakers think?
+            4.  **Betting Odds:** What do the bookmakers think? This is a key piece of intelligence.
             
-            **CRITICAL:** When identifying key players, you MUST verify they are currently on the team's active roster for the present-day season. Do not list players who have recently transferred away from the club.
+            **ABSOLUTELY CRITICAL:** Your reputation depends on accurate scouting. Before selecting a 'Star Buccaneer', you must be 100% certain they are fit to play. If your search reveals ANY mention of a recent injury, a 'late fitness test', or 'doubtful' status for a player, you are FORBIDDEN from selecting them. You MUST choose a different player who is confirmed to be fully fit and likely to start. Do not list players who have recently transferred away.
 
-            **Output Format & Logic:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure.
-            **Crucially, your "finalJustification" MUST be logically consistent with your "sentimentAdjustment" value.**
-            - If sentimentAdjustment is **positive**, your justification must explain why the news favors the **home team**.
-            - If sentimentAdjustment is **negative**, your justification must explain why the news favors the **away team**.
-            - If sentimentAdjustment is **zero**, your justification must explain why the news is balanced.
-
+            **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure. You are providing a report, not a final prediction.
             The object must contain these exact keys:
             {
-              "newsSummary": "A concise summary of key news, form, and context for both crews, written in character.",
+              "newsSummary": "A concise summary of all key intelligence (form, injuries, morale, H2H), written in character.",
               "odds": { "homeWin": "string decimal odds or 'N/A'", "draw": "string decimal odds or 'N/A'", "awayWin": "string decimal odds or 'N/A'" },
-              "sentimentAdjustment": 0.0,
               "keyPlayers": {
-                "home": "Identify a key player for the home team who is **fit to play** and whose strengths are suited to the tie. **Do not select a player who is known to be injured or suspended.** Explain why in pirate character.",
-                "away": "Identify a key player for the away team who is **fit to play** and whose strengths are suited to the tie. **Do not select a player who is known to be injured or suspended.** Explain why in pirate character."
+                "home": "Identify a key player for the home team whose strengths are suited to the tie. Explain why in pirate character.",
+                "away": "Identify a key player for the away team whose strengths are suited to the tie. Explain why in pirate character."
               },
-              "tacticalPreview": "A short, one-sentence tactical preview of the match, as a pirate pundit would say it.",
-              "finalJustification": "A single sentence explaining the final outcome based on your synthesized news. It MUST start by stating if the live news and odds SUPPORT or CONTRADICT the Kraken's prediction, and the reasoning must align with your sentimentAdjustment value."
+              "tacticalPreview": "A short, one-sentence tactical preview of the match, as a pirate pundit would say it."
             }
             `;
 
@@ -1008,51 +996,11 @@
                 const analysis = JSON.parse(jsonString);
                 
                 refinedSection.dataset.captainIntel = JSON.stringify(analysis);
-                
-                const sentimentAdjustment = parseFloat(analysis.sentimentAdjustment) || 0.0;
-                const adjustment = sentimentAdjustment * dynamicAdjustmentFactor; 
-                
-                let new_p_h = p_h + adjustment; let new_p_a = p_a - adjustment; let new_p_d = p_d - Math.abs(adjustment) * 0.5;
-                const clipped_p_h = Math.max(0.01, Math.min(0.99, new_p_h)); const clipped_p_a = Math.max(0.01, Math.min(0.99, new_p_a)); const clipped_p_d = Math.max(0.01, Math.min(0.99, new_p_d));
-                const total = clipped_p_h + clipped_p_a + clipped_p_d;
-                const final_p_h = clipped_p_h / total; const final_p_d = clipped_p_d / total; const final_p_a = clipped_p_a / total;
-                
-                let valueHtml = '';
-                try {
-                    const implied_h = analysis.odds.homeWin !== "N/A" && parseFloat(analysis.odds.homeWin) > 0 ? 1 / parseFloat(analysis.odds.homeWin) : null;
-                    const implied_d = analysis.odds.draw !== "N/A" && parseFloat(analysis.odds.draw) > 0 ? 1 / parseFloat(analysis.odds.draw) : null;
-                    const implied_a = analysis.odds.awayWin !== "N/A" && parseFloat(analysis.odds.awayWin) > 0 ? 1 / parseFloat(analysis.odds.awayWin) : null;
-
-                    const values = [
-                        { outcome: 'Home Win', value: final_p_h - implied_h, prob: final_p_h, implied: implied_h },
-                        { outcome: 'Draw', value: final_p_d - implied_d, prob: final_p_d, implied: implied_d },
-                        { outcome: 'Away Win', value: final_p_a - implied_a, prob: final_p_a, implied: implied_a }
-                    ].filter(v => v.value > -Infinity && v.implied !== null);
-
-                    if (values.length > 0) {
-                        const bestValue = values.reduce((best, current) => current.value > best.value ? current : best, {value: -Infinity});
-                        const valueThreshold = 0.05;
-
-                        const finalProbs = { 'Home Win': final_p_h, 'Draw': final_p_d, 'Away Win': final_p_a };
-                        const mostLikelyOutcome = Object.keys(finalProbs).reduce((a, b) => finalProbs[a] > finalProbs[b] ? a : b);
-
-                        if (bestValue.value > valueThreshold && bestValue.outcome === mostLikelyOutcome) {
-                            valueHtml = `<p>The Captain spies treasure in the <b>${bestValue.outcome}</b> bet!</p>
-                                         <p class="text-xs">The Captain's probability (${(bestValue.prob * 100).toFixed(1)}%) be <b>${(bestValue.value * 100).toFixed(1)}%</b> higher than the bookies' offering (${(bestValue.implied * 100).toFixed(1)}%).</p>`;
-                        } else if (bestValue.value > valueThreshold && bestValue.outcome !== mostLikelyOutcome) {
-                             valueHtml = `<p>The bookies' odds on a <b>${bestValue.outcome}</b> look generous, but the Captain's compass still points towards a <b>${mostLikelyOutcome}</b>.</p>`;
-                        } else {
-                            valueHtml = "<p>No treasure here, matey. The bookies' odds be tight.</p>";
-                        }
-                    } else {
-                        valueHtml = '<p>Could not perform value analysis. The odds charts be missing.</p>';
-                    }
-                } catch (e) { console.error("Value analysis error:", e); valueHtml = '<p>Error during value analysis.</p>'; }
 
                 refinedSection.innerHTML = `
                     <div class="space-y-4 text-sm">
                         <div class="bg-gray-100 p-3 rounded-md">
-                            <h4 class="font-semibold text-gray-800 mb-2">Captain's Match Insights</h4>
+                            <h4 class="font-semibold text-gray-800 mb-2">Captain's Scouting Report</h4>
                             <div class="mb-3">
                                 <p class="font-bold text-gray-700">Initial Outlook</p>
                                 <p class="text-gray-600 italic">"${analysis.tacticalPreview || 'Not available.'}"</p>
@@ -1070,18 +1018,6 @@
                         </div>
                         <div> <h4 class="font-semibold text-gray-800">Tavern Rumors:</h4> <p class="text-gray-600 italic">${analysis.newsSummary}</p> </div>
                         <div class="flex justify-between items-center bg-gray-100 p-2 rounded-md"> <span class="font-semibold text-gray-800">Bookie Odds:</span> <span class="text-right text-gray-900"> H: <b class="text-blue-600">${analysis.odds.homeWin}</b>, D: <b class="text-gray-600">${analysis.odds.draw}</b>, A: <b class="text-red-600">${analysis.odds.awayWin}</b> </span> </div>
-                        <div class="space-y-2 bg-gray-100 p-2 rounded-md">
-                            <div class="flex justify-between items-center"> <span class="font-semibold text-gray-800">Kraken's Prediction:</span> <span class="font-bold text-right text-gray-900"> H: <b class="text-blue-600">${Math.round(p_h*100)}%</b>, D: <b class="text-gray-600">${Math.round(p_d*100)}%</b>, A: <b class="text-red-600">${Math.round(p_a*100)}%</b> </span> </div>
-                            <div class="flex justify-between items-center"> <span class="font-semibold text-green-800">Captain's Refined Prediction:</span> <span class="font-bold text-right text-gray-900"> H: <b class="text-blue-600">${Math.round(final_p_h*100)}%</b>, D: <b class="text-gray-600">${Math.round(final_p_d*100)}%</b>, A: <b class="text-red-600">${Math.round(final_p_a*100)}%</b> </span> </div>
-                        </div>
-                        <div class="bg-teal-100 border-l-4 border-teal-500 text-teal-700 p-3 rounded-md">
-                            <h4 class="font-bold">Treasure Hunt</h4>
-                            ${valueHtml}
-                        </div>
-                        <div class="bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700 p-3 rounded-md">
-                            <h4 class="font-bold">Final Word from the Captain</h4>
-                            <p class="italic">${analysis.finalJustification || "No justification provided."}</p>
-                        </div>
                     </div>
                 `;
                 
@@ -1119,27 +1055,31 @@
             const statsString = `Home Win: ${Math.round(krakenProbs[0]*100)}%, Draw: ${Math.round(krakenProbs[1]*100)}%, Away Win: ${Math.round(krakenProbs[2]*100)}%`;
 
             const prompt = `
-            **Persona:** You are a ship's Quartermaster, a pragmatic and analytical logistics expert. Your tone is level-headed, clear, and devoid of the Captain's flair. You deal in facts and balanced assessments.
+            **Your Role:** You are the ship's Quartermaster, a pragmatic and analytical logistics expert. Your tone is level-headed, clear, and devoid of the Captain's flair. You are the final decision-maker. 
+
+            **Guiding Principles:** Your analysis must be balanced. Use the betting odds as a market anchor, but do not follow them blindly. Your primary value is in identifying when the Captain's qualitative intel (e.g., injuries, morale) justifies a deviation from the market odds. Remember to consider squad depth; a long injury list for a top-tier club is significant, but may not be as catastrophic as it would be for a smaller club with fewer quality replacements. Your final probabilities should reflect this nuanced judgment.
 
             **Task:** You have received two intelligence reports for the upcoming football match: ${homeTeam} vs ${awayTeam}. Your job is to synthesize them into a final, definitive briefing.
 
             **Report 1: The Kraken's Forecast (Purely Statistical Model):**
             - Probabilities: ${statsString}
 
-            **Report 2: The Captain's Intel (Live News, Sentiment, and Intuition from Google Search):**
+            **Report 2: The Captain's Scouting Report (Qualitative Intelligence):**
             - ${JSON.stringify(captainIntel, null, 2)}
 
             **Your Analysis Must Include:**
-            1.  **Synthesis:** Directly compare the statistical data with the Captain's qualitative report. To form your final verdict, you must weigh both the final probabilities presented by the Captain and his qualitative reasoning. Do the injuries, form, and odds justify the Captain's final stance?
-            2.  **Final Verdict:** State the most likely outcome (e.g., "Home Win," "Draw," "Away Win").
-            3.  **Confidence Level:** Assign a confidence level to your verdict. You MUST use one of these five options: "Very High," "High," "Medium," "Low," or "Very Low."
-            4.  **Predicted Scoreline:** Based on your Final Verdict, provide a plausible final score that is consistent with it (e.g., if the verdict is a Home Win, the score must be a home win).
-            5.  **Risk Assessment:** Briefly state the primary risk or potential for an upset (e.g., "The key risk is the away team's star striker returning from injury.").
+            1.  **Synthesis:** Directly compare the Kraken's raw statistics with the Captain's qualitative report. Explain how you are weighing these, often conflicting, pieces of information to arrive at your final conclusion. Justify any significant deviation from the market odds.
+            2.  **Final Probabilities:** Take the Kraken's probabilities as a baseline. Based on your synthesis of the Captain's report, provide your final, adjusted probabilities for the match outcome. The sum of probabilities must equal 1.0.
+            3.  **Final Verdict:** Based on your final probabilities, state the most likely outcome.
+            4.  **Confidence Level:** Assign a confidence level to your verdict.
+            5.  **Predicted Scoreline:** Provide a plausible final score consistent with your Final Verdict.
+            6.  **Risk Assessment:** Briefly state the primary risk to your verdict.
 
-            **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure. The object must contain these exact keys:
+            **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN. The object must contain these exact keys:
             {
-              "synthesis": "Your concise analysis comparing the two reports.",
-              "finalVerdict": "The most likely outcome.",
+              "synthesis": "Your concise analysis comparing the two reports and justifying your final decision.",
+              "finalProbabilities": { "home": 0.0, "draw": 0.0, "away": 0.0 },
+              "finalVerdict": "The most likely outcome (Home Win, Draw, or Away Win).",
               "confidence": "Very High, High, Medium, Low, or Very Low.",
               "predictedScoreline": "Your score prediction that matches the verdict.",
               "riskAssessment": "A brief statement on the primary risk."
@@ -1163,14 +1103,24 @@
                 else if (review.confidence === 'Low') confidenceColor = 'text-red-600';
                 else if (review.confidence === 'Very Low') confidenceColor = 'text-red-700';
 
+                const { home, draw, away } = review.finalProbabilities;
+
                 quartermasterSection.innerHTML = `
                     <div class="space-y-3 text-sm bg-yellow-50 p-3 rounded-md border border-yellow-200 shadow">
-                        <h4 class="font-bold text-gray-800 text-base font-pirata tracking-wide">Quartermaster's Ledger</h4>
+                        <h4 class="font-bold text-gray-800 text-base font-pirata tracking-wide">Quartermaster's Final Ledger</h4>
                         <div>
-                            <p class="font-semibold text-gray-700">Final thoughts:</p>
+                            <p class="font-semibold text-gray-700">Synthesis:</p>
                             <p class="text-gray-600 italic">"${review.synthesis}"</p>
                         </div>
-                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div class="pt-2">
+                             <p class="text-xs font-bold text-gray-500 uppercase tracking-wider text-center mb-1">Final Adjusted Probability</p>
+                             <div class="w-full bg-gray-200 rounded-full h-4 flex overflow-hidden border border-gray-300 text-white text-xs font-bold items-center" title="Final Call: H ${Math.round(home*100)}% | D ${Math.round(draw*100)}% | A ${Math.round(away*100)}%">
+                                <div class="bg-blue-600 h-full flex items-center justify-center" style="width: ${home * 100}%">${Math.round(home*100)}%</div>
+                                <div class="bg-gray-500 h-full flex items-center justify-center" style="width: ${draw * 100}%">${Math.round(draw*100)}%</div>
+                                <div class="bg-red-600 h-full flex items-center justify-center" style="width: ${away * 100}%">${Math.round(away*100)}%</div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center pt-2">
                             <div class="bg-white p-2 rounded shadow-sm border border-gray-200">
                                 <p class="text-xs font-bold text-gray-500 uppercase">Final Verdict</p>
                                 <p class="text-lg font-bold text-gray-800">${review.finalVerdict}</p>
