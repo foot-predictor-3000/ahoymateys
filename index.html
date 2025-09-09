@@ -21,22 +21,11 @@
         }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <!-- UPDATED LOTTIE SCRIPT -->
+    <script src="https://unpkg.com/@lottiefiles/dotlottie-wc@0.6.2/dist/dotlottie-wc.js" type="module"></script>
     <link rel="manifest" href="data:application/json;base64,ew0KICAic2hvcnRfbmFtZSI6ICJGb290YmFsbFByZWRpY3RvciIsDQogICJuYW1lIjogIk9mZmxpbmUgRm9vdGJhbGwgUHJlZGljdG9yIiwNCiAgImljb25zIjogWw0KICAgIHsNCiAgICAgICJzcmMiOiAiaWNvbnMvaWNvbi0xOTIucG5nIiwNCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIsDQogICAgICAic2l6ZXMiOiAiMTkyxDE5MiINCiAgICB9LA0KICAgIHsNCiAgICAgICJzcmMiOiAiaWNvbnMvaWNvbi01MTIucG5nIiwNCiAgICAgICJ0eXBlIjogImltYWdlL3BuZyIsDQogICAgICAic2l6ZXMiOiAiNTEyeDUxMiINCiAgICB9DQogIF0sDQogICJzdGFydF91cmwiOiAiLiIsDQogICJkaXNwbGF5IjogInNtYW5kYWxvbmUiLA0KICAidGhlbWVfY29sb3IiOiAiIzAwMDAwMCIsDQogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNmZmZmZmYiDQp9">
 
     <style>
-        /* Simple loading spinner */
-        .spinner {
-            border: 4px solid rgba(0, 0, 0, 0.1);
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border-left-color: #09f;
-            animation: spin 1s ease infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
         /* Pirate theme background */
         body {
             background-color: #0a2d4d; /* Dark blue sea color */
@@ -229,6 +218,10 @@
         const MATCHES_STORE_NAME = 'matches';
         const H2H_MATCHES_COUNT = 5;
         const ANALYSIS_PACK_LIMIT = 3;
+        
+        // --- LOTTIE CHANGE: Use the new dotlottie component and resize it ---
+        const LOTTIE_LOADER_HTML = `<dotlottie-wc src="https://lottie.host/19109b73-f99a-4a89-a48c-d5b90bf22b22/tlVX1kmiPt.lottie" background="transparent" speed="1" style="width: 40px; height: 40px;" loop autoplay></dotlottie-wc>`;
+
 
         // --- Global State ---
         let db;
@@ -243,7 +236,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
-                    const CACHE_NAME = 'football-predictor-v55-final-polish'; /* Cache version updated */
+                    const CACHE_NAME = 'football-predictor-v57-dotlottie'; /* Cache version updated */
                     const urlsToCache = ['/'];
                     self.addEventListener('install', event => { self.skipWaiting(); event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))); });
                     self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) )).then(() => self.clients.claim()) ); });
@@ -671,7 +664,8 @@
                         btn.classList.remove('svg-button-disabled');
                     });
                 } else if (type === 'status_update') {
-                    trainingStatusArea.innerHTML = `<div class="flex items-center justify-center"><div class="spinner"></div><p class="ml-2">${payload}</p></div>`;
+                    // --- LOTTIE CHANGE: Use the Lottie HTML ---
+                    trainingStatusArea.innerHTML = `<div class="flex items-center justify-center">${LOTTIE_LOADER_HTML}<p class="ml-2">${payload}</p></div>`;
                 } else if (type === 'training_error') {
                     isTraining = false;
                     trainingStatusArea.innerHTML = `<span class="text-red-500">Training failed, Captain! ${payload}</span>`;
@@ -783,11 +777,13 @@
 
         // --- UI Updates ---
         function setStatus(message, isLoading) {
-            statusArea.innerHTML = isLoading ? `<div class="flex items-center"><div class="spinner mr-2"></div><p>${message}</p></div>` : `<p>${message}</p>`;
+            // --- LOTTIE CHANGE: Use the Lottie HTML ---
+            statusArea.innerHTML = isLoading ? `<div class="flex items-center">${LOTTIE_LOADER_HTML}<p class="ml-2">${message}</p></div>` : `<p>${message}</p>`;
         }
 
         function setGeminiStatus(message, isLoading) {
-            geminiStatusArea.innerHTML = isLoading ? `<div class="flex items-center"><div class="spinner mr-2"></div><p>${message}</p></div>` : `<p>${message}</p>`;
+            // --- LOTTIE CHANGE: Use the Lottie HTML ---
+            geminiStatusArea.innerHTML = isLoading ? `<div class="flex items-center">${LOTTIE_LOADER_HTML}<p class="ml-2">${message}</p></div>` : `<p>${message}</p>`;
             if (isLoading) {
                 findFixturesBtn.disabled = true;
                 findFixturesBtn.classList.add('svg-button-disabled');
@@ -1004,7 +1000,8 @@
             }
 
             const predictionEl = document.getElementById(`prediction-${index}`);
-            predictionEl.innerHTML = `<div class="flex items-center justify-center text-gray-600"><div class="spinner mr-2"></div><p>The Kraken is stirring...</p></div>`;
+            // --- LOTTIE CHANGE: Use the Lottie HTML ---
+            predictionEl.innerHTML = `<div class="flex items-center justify-center text-gray-600">${LOTTIE_LOADER_HTML}<p class="ml-2">The Kraken is stirring...</p></div>`;
             
             document.getElementById(`reasoning-${index}`).classList.add('hidden');
             document.getElementById(`quartermaster-report-btn-container-${index}`).classList.add('hidden');
@@ -1098,7 +1095,8 @@
             
             const reportSection = document.getElementById(`quartermaster-report-section-${index}`);
             
-            reportSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Quartermaster is gathering intel...</div>';
+            // --- LOTTIE CHANGE: Use the Lottie HTML ---
+            reportSection.innerHTML = `<div class="flex items-center text-sm text-gray-500">${LOTTIE_LOADER_HTML}<p class="ml-2">The Quartermaster is gathering intel...</p></div>`;
             reportSection.classList.remove('hidden');
             
             document.getElementById(`captain-review-btn-container-${index}`).classList.add('hidden');
@@ -1186,7 +1184,8 @@
             }
             
             const captainSection = document.getElementById(`captain-review-section-${index}`);
-            captainSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Captain is making his decision...</div>';
+            // --- LOTTIE CHANGE: Use the Lottie HTML ---
+            captainSection.innerHTML = `<div class="flex items-center text-sm text-gray-500">${LOTTIE_LOADER_HTML}<p class="ml-2">The Captain is making his decision...</p></div>`;
             captainSection.classList.remove('hidden');
 
             const predictionEl = document.getElementById(`prediction-${index}`);
@@ -1313,4 +1312,5 @@
     </script>
 </body>
 </html>
+
 
