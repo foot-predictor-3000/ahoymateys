@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Captain Turfbeard's Kraken-powered football analysis</title>
+    <title>Captain Turfbeard's football analysis</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,7 +46,7 @@
         /* Parchment style */
         .parchment {
             background-color: #fdf5e6; /* A nice parchment color */
-            border: 1px solid #d2b48c; /* A tan border */
+            border: 10px solid #d2b48c; /* A tan border */
             box-shadow: inset 0 0 8px rgba(139, 69, 19, 0.2);
              /* Subtle fibrous texture using SVG */
             background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><filter id="f1" x="0" y="0"><feTurbulence type="fractalNoise" baseFrequency="0.2" numOctaves="5" seed="10"/></filter><rect width="100%" height="100%" filter="url(%23f1)" opacity="0.05"/></svg>');
@@ -79,9 +79,11 @@
 <body class="font-english antialiased text-gray-200">
     <div id="root" class="container mx-auto p-4 max-w-3xl">
         <header class="parchment rounded-lg shadow-md p-6 mb-6 text-center">
-            <h1 class="text-5xl font-pirata text-gray-900 text-center sm:text-left">Captain Turfbeard's Footy Predictions</h1>
+            <h1 class="text-5xl font-pirata text-gray-900 text-center sm:text-center">Captain Turfbeard's Kraken-powered football analysis</h1>
             <img src="https://raw.githubusercontent.com/foot-predictor-3000/Pirate_test/135608deabea9dd041654ee3a556cde4db616348/1757260212793.jpg" alt="A detailed cartoon of a pirate captain and a kraken looking at a football tactics board." class="my-4 mx-auto rounded-lg shadow-lg w-full max-w-md">
-            <p class="text-gray-600 mt-2 text-center sm:text-left">Harness the power of the ocean's smartest Kraken to consider match outcomes!<br></br>Train the Kraken's 9 brains on past results, let the Quartermaster gather the latest tavern gossip, and then get the Captain's final orders. <br></br>This be for entertainment and pirate bragging rights only, savvy? No wagering yer pieces of eight based on these whispers!<br></br> Tip: Clear the cache before you start. Old loot in the coffers may confuse the Kraken!</p>
+            <p class="text-gray-600 mt-2 text-center sm:text-left"><strong>How does it work?</strong><br></br>Train the Kraken's 9 brains on past results, send the Quartermaster on a scouting mission to gather the latest tavern gossip, then get the Captain's final orders!</p>
+            <img src="https://raw.githubusercontent.com/foot-predictor-3000/ahoymateys/refs/heads/main/Gemini_Generated_Image_b5oxfpb5oxfpb5ox.png" alt="comic strip of process" class="my-4 mx-auto rounded-lg shadow-lg w-full max-w-md">
+            <p class="text-gray-600 mt-2 text-center sm:text-left">This be for entertainment and pirate bragging rights only, savvy? No wagering yer pieces of eight based on these whispers!</p>
         </header>
 
         <main>
@@ -151,7 +153,7 @@
             </div>
 
             <div class="parchment rounded-lg shadow-md p-6">
-                <h2 class="text-3xl font-pirata mb-4 text-gray-900">Step 2: Chart the Waters</h2>
+                <h2 class="text-3xl font-pirata mb-4 text-gray-900">Step 2: Gaze into the abyss</h2>
                 <div class="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <label for="api-key-input" class="block text-sm font-medium text-gray-700 mb-1">Enter yer Secret Key (Gemini API Key):</label>
                     <input type="password" id="api-key-input" class="w-full p-2 border border-gray-300 rounded-md shadow-sm" placeholder="Your key is kept safe in the crow's nest">
@@ -206,25 +208,7 @@
     </div>
 
     <script>
-// ... existing script ...
-// This file is complete and contains the full JavaScript logic.
-// The user has encountered an issue where the "Awaken the Kraken" button is not visible.
-// The root cause was identified as an incomplete file being sent in a previous turn,
-// resulting in a "SyntaxError: Unexpected end of input". This error prevented the
-// script from running to completion, thus the button's display logic was never reached.
-// Additionally, the user requested that all main action buttons adopt the brown wooden plank theme.
-//
-// This version of the file is complete and contains the following fixes:
-// 1.  It is a complete file, resolving the SyntaxError.
-// 2.  The `train-models-btn` ("Awaken the Kraken") is now styled with the brown SVG theme.
-// 3.  The logic for showing/hiding this button is confirmed to be present and correct.
-// 4.  The `predict-btn` ("Forecast"), `getQuartermasterReport` button, and `getCaptainReview` button
-//     have all been updated to the consistent brown wooden plank SVG style.
-// 5.  The logic for disabling buttons has been made more robust by adding/removing a class (`svg-button-disabled`)
-//     instead of directly manipulating the disabled attribute, which was causing rendering issues.
-//
-// All subsequent code from the original file is included below this comment block.
-// --- DOM Elements ---
+        // --- DOM Elements ---
         const leagueSelect = document.getElementById('league-select');
         const fetchDataBtn = document.getElementById('fetch-data-btn');
         const statusArea = document.getElementById('status-area');
@@ -687,7 +671,7 @@
                         btn.classList.remove('svg-button-disabled');
                     });
                 } else if (type === 'status_update') {
-                    trainingStatusArea.innerHTML = `<div class="flex items-center justify-center"><div class="spinner mr-2"></div><p>${payload}</p></div>`;
+                    trainingStatusArea.innerHTML = `<div class="flex items-center justify-center"><div class="spinner"></div><p class="ml-2">${payload}</p></div>`;
                 } else if (type === 'training_error') {
                     isTraining = false;
                     trainingStatusArea.innerHTML = `<span class="text-red-500">Training failed, Captain! ${payload}</span>`;
@@ -997,11 +981,13 @@
             if(isTraining) return;
             isTraining = true;
             trainModelsBtn.disabled = true;
+            trainModelsBtn.classList.add('svg-button-disabled');
             const historicalMatches = await getAllMatchesFromDB();
             if (historicalMatches.length < 50) { 
                 trainingStatusArea.innerHTML = '<span class="text-red-500">Not enough grog (data) to train the beast! Fetch more records.</span>';
                 isTraining = false;
                 trainModelsBtn.disabled = false;
+                trainModelsBtn.classList.remove('svg-button-disabled');
                 return; 
             }
             trainingWorker.postMessage({ type: 'train_model', payload: {matches: historicalMatches} });
@@ -1018,7 +1004,7 @@
             }
 
             const predictionEl = document.getElementById(`prediction-${index}`);
-            predictionEl.innerHTML = '<div class="flex items-center justify-center"><div class="spinner"></div></div>';
+            predictionEl.innerHTML = `<div class="flex items-center justify-center text-gray-600"><div class="spinner mr-2"></div><p>The Kraken is stirring...</p></div>`;
             
             document.getElementById(`reasoning-${index}`).classList.add('hidden');
             document.getElementById(`quartermaster-report-btn-container-${index}`).classList.add('hidden');
@@ -1054,9 +1040,9 @@
             predictionEl.dataset.predictionValues = JSON.stringify([ensH, ensD, ensA]);
             predictionEl.innerHTML = `
                 <div class="grid grid-cols-3 gap-x-2 gap-y-1 text-center text-xs mb-3 text-gray-600">
-                    <div><span class="font-semibold">Hearts:</span> ${Math.round(nnH*100)}|${Math.round(nnD*100)}|${Math.round(nnA*100)}%</div>
-                    <div><span class="font-semibold">Brains:</span> ${Math.round(lrH*100)}|${Math.round(lrD*100)}|${Math.round(lrA*100)}%</div>
-                    <div><span class="font-semibold">Guts:</span> ${Math.round(poiH*100)}|${Math.round(poiD*100)}|${Math.round(poiA*100)}%</div>
+                    <div><span class="font-semibold">Kraken's two hearts:</span> ${Math.round(nnH*100)}|${Math.round(nnD*100)}|${Math.round(nnA*100)}%</div>
+                    <div><span class="font-semibold">Kraken's nine brains:</span> ${Math.round(lrH*100)}|${Math.round(lrD*100)}|${Math.round(lrA*100)}%</div>
+                    <div><span class="font-semibold">Kraken's guts:</span> ${Math.round(poiH*100)}|${Math.round(poiD*100)}|${Math.round(poiA*100)}%</div>
                 </div>
                 <div class="text-center mb-2">
                      <p class="font-pirata text-lg text-gray-800 tracking-wider">Kraken's Baseline Forecast</p>
@@ -1188,7 +1174,7 @@
 
             } catch(e) { 
                 console.error("Quartermaster Error:", e); 
-                reportSection.innerHTML = '<p class="text-red-500">The Quartermaster dropped his inkwell and could not complete the report. Try again.</p>'; 
+                reportSection.innerHTML = '<p class="text-red-500">Oh dear! The quartermaster sank a few too many ales and the rumours got hazy. Try again!</p>'; 
             }
         }
         
