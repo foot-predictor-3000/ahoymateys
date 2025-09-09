@@ -58,7 +58,7 @@
         <header class="parchment rounded-lg shadow-md p-6 mb-6 text-center">
             <h1 class="text-5xl font-pirata text-gray-900 text-center sm:text-left">Captain Turfbeard's Footy Predictions</h1>
             <img src="https://raw.githubusercontent.com/foot-predictor-3000/Pirate_test/135608deabea9dd041654ee3a556cde4db616348/1757260212793.jpg" alt="A detailed cartoon of a pirate captain and a kraken looking at a football tactics board." class="my-4 mx-auto rounded-lg shadow-lg w-full max-w-md">
-            <p class="text-gray-600 mt-2 text-center sm:text-left">Harness the power of the ocean's smartest Kraken to consider match outcomes!<br></br>Train the Kraken's 9 brains on past results, let the Captain gather the latest tavern gossip, and then see if the Quartermaster agrees with the analysis. <br></br>This be for entertainment and pirate bragging rights only, savvy? No wagering yer pieces of eight based on these whispers!<br></br> Tip: Clear the cache before you start. Old loot in the coffers may confuse the Kraken!</p>
+            <p class="text-gray-600 mt-2 text-center sm:text-left">Harness the power of the ocean's smartest Kraken to consider match outcomes!<br></br>Train the Kraken's 9 brains on past results, let the Quartermaster gather the latest tavern gossip, and then get the Captain's final orders. <br></br>This be for entertainment and pirate bragging rights only, savvy? No wagering yer pieces of eight based on these whispers!<br></br> Tip: Clear the cache before you start. Old loot in the coffers may confuse the Kraken!</p>
         </header>
 
         <main>
@@ -171,7 +171,7 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `
-                    const CACHE_NAME = 'football-predictor-v52-final-fixes'; /* Cache version updated */
+                    const CACHE_NAME = 'football-predictor-v53-role-swap'; /* Cache version updated */
                     const urlsToCache = ['/'];
                     self.addEventListener('install', event => { self.skipWaiting(); event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))); });
                     self.addEventListener('activate', event => { const cacheWhitelist = [CACHE_NAME]; event.waitUntil( caches.keys().then(cacheNames => Promise.all( cacheNames.map(cacheName => { if (cacheWhitelist.indexOf(cacheName) === -1) { return caches.delete(cacheName); } }) )).then(() => self.clients.claim()) ); });
@@ -623,7 +623,7 @@
             let currentYear = now.getFullYear();
             let currentSeasonEndYear;
 
-            // A European football season typically starts in August (month 7) and ends the following May/June.
+            // A European football season typically starts in August (month index 7) and ends the following May/June.
             if (now.getMonth() >= 7) { // We are in the start of a new season (Aug - Dec)
                 currentSeasonEndYear = currentYear + 1;
             } else { // We are in the end of a season (Jan - July)
@@ -831,14 +831,14 @@
                             <div id="toggle-content-${index}" class="hidden space-y-4 pt-4 mt-4 border-t border-gray-200">
                                 <div id="prediction-${index}" class="text-sm font-semibold text-center w-full text-gray-800" data-prediction-values=""></div>
                                 <div id="reasoning-${index}" class="w-full hidden"></div>
-                                <div id="refine-btn-container-${index}" class="mt-2 text-center hidden">
-                                    <button id="refine-btn-${index}" onclick="refinePrediction('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Gather Tavern Gossip</button>
+                                <div id="quartermaster-report-btn-container-${index}" class="mt-2 text-center hidden">
+                                    <button id="quartermaster-report-btn-${index}" onclick="getQuartermasterReport('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-md transition duration-300">Consult the Quartermaster</button>
                                 </div>
-                                <div id="refined-section-${index}" class="hidden w-full" data-captain-intel=""></div>
-                                <div id="quartermaster-btn-container-${index}" class="mt-2 text-center hidden">
-                                    <button id="quartermaster-btn-${index}" onclick="getQuartermasterReview('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-md transition duration-300">Consult the Quartermaster</button>
+                                <div id="quartermaster-report-section-${index}" class="hidden w-full" data-quartermaster-intel=""></div>
+                                <div id="captain-review-btn-container-${index}" class="mt-2 text-center hidden">
+                                    <button id="captain-review-btn-${index}" onclick="getCaptainReview('${homeTeamJs}', '${awayTeamJs}', ${index})" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-4 rounded-md transition duration-300">Get the Captain's Final Orders</button>
                                 </div>
-                                <div id="quartermaster-section-${index}" class="hidden w-full"></div>
+                                <div id="captain-review-section-${index}" class="hidden w-full"></div>
                             </div>
                         </div>
                     `;
@@ -897,10 +897,10 @@
             predictionEl.innerHTML = '<div class="flex items-center justify-center"><div class="spinner"></div></div>';
             
             document.getElementById(`reasoning-${index}`).classList.add('hidden');
-            document.getElementById(`refine-btn-container-${index}`).classList.add('hidden');
-            document.getElementById(`refined-section-${index}`).classList.add('hidden');
-            document.getElementById(`quartermaster-btn-container-${index}`).classList.add('hidden');
-            document.getElementById(`quartermaster-section-${index}`).classList.add('hidden');
+            document.getElementById(`quartermaster-report-btn-container-${index}`).classList.add('hidden');
+            document.getElementById(`quartermaster-report-section-${index}`).classList.add('hidden');
+            document.getElementById(`captain-review-btn-container-${index}`).classList.add('hidden');
+            document.getElementById(`captain-review-section-${index}`).classList.add('hidden');
 
             if (!modelsTrained) {
                 predictionEl.innerHTML = '<span class="text-orange-500">Ye must awaken the Kraken first!</span>';
@@ -945,7 +945,7 @@
             `;
             
             document.getElementById(`reasoning-${index}`).classList.remove('hidden');
-            document.getElementById(`refine-btn-container-${index}`).classList.remove('hidden');
+            document.getElementById(`quartermaster-report-btn-container-${index}`).classList.remove('hidden');
         }
 
         function displayStatisticalReasoning(index, homeTeam, awayTeam, stats) {
@@ -982,24 +982,20 @@
             reasoningEl.innerHTML = html;
         }
         
-        async function refinePrediction(homeTeam, awayTeam, index) {
+        async function getQuartermasterReport(homeTeam, awayTeam, index) {
             const apiKey = apiKeyInput.value;
             if (!apiKey) { setGeminiStatus('<span class="text-red-500">Ye need a secret key to use the spyglass!</span>', false); return; }
             
-            const refinedSection = document.getElementById(`refined-section-${index}`);
+            const reportSection = document.getElementById(`quartermaster-report-section-${index}`);
             
-            refinedSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Captain is gathering rumors...</div>';
-            refinedSection.classList.remove('hidden');
+            reportSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Quartermaster is gathering intel...</div>';
+            reportSection.classList.remove('hidden');
             
-            document.getElementById(`quartermaster-btn-container-${index}`).classList.add('hidden');
-            document.getElementById(`quartermaster-section-${index}`).classList.add('hidden');
+            document.getElementById(`captain-review-btn-container-${index}`).classList.add('hidden');
+            document.getElementById(`captain-review-section-${index}`).classList.add('hidden');
 
-            const predictionEl = document.getElementById(`prediction-${index}`);
-            const initialProbs = JSON.parse(predictionEl.dataset.predictionValues);
-            if (!initialProbs) { refinedSection.innerHTML = "<p class='text-red-500'>Get the Kraken's initial forecast first, matey.</p>"; return; }
-            
             const prompt = `
-            **Persona:** You are Captain Turfbeard, a gruff, knowledgeable, and slightly comical pirate captain who is also a football expert. Your job is to be the scout who gathers qualitative intelligence.
+            **Persona:** You are a ship's Quartermaster, a pragmatic and analytical logistics expert. Your tone is level-headed, clear, and devoid of flair. Your job is to gather and present factual intelligence.
 
             **Task:** Provide a qualitative intelligence report for the upcoming football match: ${homeTeam} vs ${awayTeam}.
             
@@ -1009,22 +1005,22 @@
             3.  **Head-to-Head History:** Is there a psychological edge based on recent encounters?
             4.  **Betting Odds:** What do the bookmakers think? This is a key piece of intelligence.
             
-            **CRITICAL TACTICAL LINK:** Your choice for 'Star Buccaneer' for each team MUST be directly justified by the 'tacticalPreview' you provide. For example, if your outlook is about counter-attacks, you must select a fast forward or a long-passing midfielder and explain how they enable that specific tactic.
+            **CRITICAL TACTICAL LINK:** Your choice for 'Key Personnel' for each team MUST be directly justified by the 'tacticalPreview' you provide. For example, if your outlook is about counter-attacks, you must select a fast forward or a long-passing midfielder and explain how they enable that specific tactic.
 
-            **ABSOLUTELY CRITICAL - ZERO TOLERANCE POLICY:** Your reputation as a scout is on the line. Before selecting a 'Star Buccanear', you must be 100% certain of two things:
+            **ABSOLUTELY CRITICAL - ZERO TOLERANCE POLICY:** Your reputation depends on flawless intel. Before selecting 'Key Personnel', you must be 100% certain of two things:
             1. **CURRENT CLUB:** They play for the specified team in the current season (e.g., as of September 2025). You must verify they have not been recently transferred or loaned out. Factual errors on club affiliation are unacceptable.
             2. **FITNESS:** They are fully fit to play. If your search reveals ANY mention of a recent injury, 'late fitness test', or 'doubtful' status, you are FORBIDDEN from selecting them. You MUST choose a different, unequivocally fit player.
 
-            **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure. You are providing a report, not a final prediction.
+            **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN or other text outside the JSON structure.
             The object must contain these exact keys:
             {
-              "newsSummary": "A concise summary of all key intelligence (form, injuries, morale, H2H), written in character.",
+              "intelligenceSummary": "A concise, factual summary of all key intelligence (form, injuries, morale, H2H).",
               "odds": { "homeWin": "string decimal odds or 'N/A'", "draw": "string decimal odds or 'N/A'", "awayWin": "string decimal odds or 'N/A'" },
-              "keyPlayers": {
+              "keyPersonnel": {
                 "home": "Identify a key player for the home team and explain how their strengths are suited to the specific tactical outlook you provided.",
                 "away": "Identify a key player for the away team and explain how their strengths are suited to the specific tactical outlook you provided."
               },
-              "tacticalPreview": "A short, one-sentence tactical preview of the match, as a pirate pundit would say it."
+              "tacticalPreview": "A short, one-sentence tactical preview of the match."
             }
             `;
 
@@ -1038,94 +1034,94 @@
                 const jsonString = textResponse.replace(/```json|```/g, '').trim();
                 const analysis = JSON.parse(jsonString);
                 
-                refinedSection.dataset.captainIntel = JSON.stringify(analysis);
+                reportSection.dataset.quartermasterIntel = JSON.stringify(analysis);
 
-                refinedSection.innerHTML = `
+                reportSection.innerHTML = `
                     <div class="space-y-4 text-sm">
                         <div class="bg-gray-100 p-3 rounded-md">
-                            <h4 class="font-semibold text-gray-800 mb-2">Captain's Scouting Report</h4>
+                            <h4 class="font-semibold text-gray-800 mb-2">Quartermaster's Scouting Report</h4>
                             <div class="mb-3">
-                                <p class="font-bold text-gray-700">Initial Outlook</p>
+                                <p class="font-bold text-gray-700">Tactical Preview</p>
                                 <p class="text-gray-600 italic">"${analysis.tacticalPreview || 'Not available.'}"</p>
                             </div>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                                 <div>
-                                    <p class="font-bold text-gray-700">Star Buccaneer (Home)</p>
-                                    <p class="text-gray-600">${analysis.keyPlayers.home || 'Not identified.'}</p>
+                                    <p class="font-bold text-gray-700">Key Personnel (Home)</p>
+                                    <p class="text-gray-600">${analysis.keyPersonnel.home || 'Not identified.'}</p>
                                 </div>
                                 <div>
-                                    <p class="font-bold text-gray-700">Star Buccaneer (Away)</p>
-                                    <p class="text-gray-600">${analysis.keyPlayers.away || 'Not identified.'}</p>
+                                    <p class="font-bold text-gray-700">Key Personnel (Away)</p>
+                                    <p class="text-gray-600">${analysis.keyPersonnel.away || 'Not identified.'}</p>
                                 </div>
                             </div>
                         </div>
-                        <div> <h4 class="font-semibold text-gray-800">Tavern Rumors:</h4> <p class="text-gray-600 italic">${analysis.newsSummary}</p> </div>
+                        <div> <h4 class="font-semibold text-gray-800">Intelligence Summary:</h4> <p class="text-gray-600 italic">${analysis.intelligenceSummary}</p> </div>
                         <div class="flex justify-between items-center bg-gray-100 p-2 rounded-md"> <span class="font-semibold text-gray-800">Bookie Odds:</span> <span class="text-right text-gray-900"> H: <b class="text-blue-600">${analysis.odds.homeWin}</b>, D: <b class="text-gray-600">${analysis.odds.draw}</b>, A: <b class="text-red-600">${analysis.odds.awayWin}</b> </span> </div>
                     </div>
                 `;
                 
-                document.getElementById(`quartermaster-btn-container-${index}`).classList.remove('hidden');
+                document.getElementById(`captain-review-btn-container-${index}`).classList.remove('hidden');
 
             } catch(e) { 
-                console.error("Refinement Error:", e); 
-                refinedSection.innerHTML = '<p class="text-red-500">Whoops, the captain sank a few too many ales and failed to interpret the rumours. Sober up and try listening again!</p>'; 
+                console.error("Quartermaster Error:", e); 
+                reportSection.innerHTML = '<p class="text-red-500">The Quartermaster dropped his inkwell and could not complete the report. Try again.</p>'; 
             }
         }
         
-        async function getQuartermasterReview(homeTeam, awayTeam, index) {
+        async function getCaptainReview(homeTeam, awayTeam, index) {
             const apiKey = apiKeyInput.value;
             if (!apiKey) { 
-                setGeminiStatus('<span class="text-red-500">The Quartermaster needs the secret key to open his ledger!</span>', false); 
+                setGeminiStatus('<span class="text-red-500">The Captain needs the secret key to make his call!</span>', false); 
                 return; 
             }
             
-            const quartermasterSection = document.getElementById(`quartermaster-section-${index}`);
-            quartermasterSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Quartermaster is reviewing the reports...</div>';
-            quartermasterSection.classList.remove('hidden');
+            const captainSection = document.getElementById(`captain-review-section-${index}`);
+            captainSection.innerHTML = '<div class="flex items-center text-sm text-gray-500"><div class="spinner mr-2"></div>The Captain is making his decision...</div>';
+            captainSection.classList.remove('hidden');
 
             const predictionEl = document.getElementById(`prediction-${index}`);
-            const refinedSection = document.getElementById(`refined-section-${index}`);
+            const reportSection = document.getElementById(`quartermaster-report-section-${index}`);
             const krakenProbsJSON = predictionEl.dataset.predictionValues;
-            const captainIntelJSON = refinedSection.dataset.captainIntel;
+            const quartermasterIntelJSON = reportSection.dataset.quartermasterIntel;
 
-            if (!krakenProbsJSON || !captainIntelJSON) {
-                quartermasterSection.innerHTML = "<p class='text-red-500'>The Quartermaster needs both the Kraken's forecast and the Captain's intel first.</p>";
+            if (!krakenProbsJSON || !quartermasterIntelJSON) {
+                captainSection.innerHTML = "<p class='text-red-500'>The Captain needs the Kraken's forecast and the Quartermaster's report first.</p>";
                 return;
             }
 
             const krakenProbs = JSON.parse(krakenProbsJSON);
-            const captainIntel = JSON.parse(captainIntelJSON);
+            const quartermasterIntel = JSON.parse(quartermasterIntelJSON);
             const statsString = `Home Win: ${Math.round(krakenProbs[0]*100)}%, Draw: ${Math.round(krakenProbs[1]*100)}%, Away Win: ${Math.round(krakenProbs[2]*100)}%`;
 
             const prompt = `
-            **Your Role:** You are the ship's Quartermaster, a pragmatic and analytical logistics expert. Your tone is level-headed, clear, and devoid of the Captain's flair. You are the final decision-maker. 
+            **Persona:** You are Captain Turfbeard, a gruff, knowledgeable, and slightly comical pirate captain. Your tone is flamboyant, decisive, and full of pirate flair. You are the final decision-maker. 
 
-            **Guiding Principles:** Your analysis must be balanced. Use the betting odds as a market anchor, but do not follow them blindly. Your primary value is in identifying when the Captain's qualitative intel (e.g., injuries, morale) justifies a deviation from the market odds. Remember to consider squad depth; a long injury list for a top-tier club is significant, but may not be as catastrophic as it would be for a smaller club with fewer quality replacements. Your final probabilities and confidence should reflect this nuanced judgment.
+            **Guiding Principles:** You trust your gut, but you listen to your crew. You have the Kraken's cold, hard numbers and the Quartermaster's factual report. Your job is to weigh them and make the final call with charisma and confidence. Use the betting odds as a guide, but don't be afraid to go against the grain if the intel smells fishy. Your final word should feel like a Captain's order.
 
-            **Task:** You have received two intelligence reports for the upcoming football match: ${homeTeam} vs ${awayTeam}. Your job is to synthesize them into a final, definitive briefing.
+            **Task:** You have received two reports for the upcoming football match: ${homeTeam} vs ${awayTeam}. Your job is to synthesize them into your final orders.
 
             **Report 1: The Kraken's Forecast (Purely Statistical Model):**
             - Probabilities: ${statsString}
 
-            **Report 2: The Captain's Scouting Report (Qualitative Intelligence):**
-            - ${JSON.stringify(captainIntel, null, 2)}
+            **Report 2: The Quartermaster's Scouting Report (Qualitative Intelligence):**
+            - ${JSON.stringify(quartermasterIntel, null, 2)}
 
             **Your Analysis Must Include:**
-            1.  **Synthesis:** Directly compare the Kraken's raw statistics with the Captain's qualitative report. Explain how you are weighing these, often conflicting, pieces of information to arrive at your final conclusion. Justify any significant deviation from the market odds.
-            2.  **Final Probabilities:** Take the Kraken's probabilities as a baseline. Based on your synthesis of the Captain's report, provide your final, adjusted probabilities for the match outcome. The sum of probabilities must equal 1.0.
-            3.  **Final Verdict:** Based on your final probabilities, state the most likely outcome.
-            4.  **Confidence Level:** Assign a confidence level to your verdict. You MUST use one of these five pirate-themed options: "Sure as the Tides" (Very High), "Favourable Winds" (High), "Choppy Waters" (Medium), "Against the Wind" (Low), or "A Long Shot for the Loot" (Very Low). Your choice MUST be consistent with the dominance implied by your scoreline prediction (e.g., a 3-0 prediction warrants a high confidence level like 'Sure as the Tides').
-            5.  **Predicted Scoreline:** Provide a plausible final score consistent with your Final Verdict.
-            6.  **Risk Assessment:** Briefly state the primary risk to your verdict.
+            1.  **The Captain's Musings:** In your pirate voice, explain how you're weighing the Kraken's numbers against the Quartermaster's intel to come to your decision.
+            2.  **Final Probabilities:** Take the Kraken's probabilities as a baseline. Based on your gut and the Quartermaster's report, provide your final, adjusted probabilities. The sum must equal 1.0.
+            3.  **Final Verdict:** State the most likely outcome with authority.
+            4.  **Confidence Level:** You MUST use one of these five pirate-themed options: "Sure as the Tides", "Favourable Winds", "Choppy Waters", "Against the Wind", or "A Long Shot for the Loot". Your choice must be consistent with the dominance implied by your scoreline prediction (e.g., a 3-0 prediction warrants "Sure as the Tides").
+            5.  **Predicted Scoreline:** Give your final score prediction.
+            6.  **The Captain's Risk:** Briefly state the main thing that could scupper your prediction, in your pirate voice.
 
             **Output Format:** Respond with a single, valid JSON object with NO MARKDOWN. The object must contain these exact keys:
             {
-              "synthesis": "Your concise analysis comparing the two reports and justifying your final decision.",
+              "synthesis": "Your charismatic analysis comparing the two reports and justifying your final orders.",
               "finalProbabilities": { "home": 0.0, "draw": 0.0, "away": 0.0 },
               "finalVerdict": "The most likely outcome (Home Win, Draw, or Away Win).",
               "confidence": "One of the five pirate-themed phrases.",
               "predictedScoreline": "Your score prediction that matches the verdict.",
-              "riskAssessment": "A brief statement on the primary risk."
+              "riskAssessment": "A brief statement on the primary risk, in character."
             }
             `;
 
@@ -1148,11 +1144,11 @@
 
                 const { home, draw, away } = review.finalProbabilities;
 
-                quartermasterSection.innerHTML = `
+                captainSection.innerHTML = `
                     <div class="space-y-3 text-sm bg-yellow-50 p-3 rounded-md border border-yellow-200 shadow">
-                        <h4 class="font-bold text-gray-800 text-base font-pirata tracking-wide">Quartermaster's Final Ledger</h4>
+                        <h4 class="font-bold text-gray-800 text-base font-pirata tracking-wide">The Captain's Final Word</h4>
                         <div>
-                            <p class="font-semibold text-gray-700">Synthesis:</p>
+                            <p class="font-semibold text-gray-700">The Captain's Musings:</p>
                             <p class="text-gray-600 italic">"${review.synthesis}"</p>
                         </div>
                         <div class="pt-2">
@@ -1177,7 +1173,7 @@
                                 <p class="text-lg font-bold ${confidenceColor}">${review.confidence}</p>
                             </div>
                              <div class="bg-white p-2 rounded shadow-sm border border-gray-200 col-span-2 sm:col-span-1">
-                                 <p class="text-xs font-bold text-gray-500 uppercase">Primary Risk</p>
+                                 <p class="text-xs font-bold text-gray-500 uppercase">The Captain's Risk</p>
                                  <p class="text-gray-600 text-xs mt-1 pt-1">${review.riskAssessment}</p>
                             </div>
                         </div>
@@ -1185,8 +1181,8 @@
                 `;
 
             } catch(e) { 
-                console.error("Quartermaster Error:", e); 
-                quartermasterSection.innerHTML = '<p class="text-red-500">The Quartermaster dropped his inkwell and could not complete the ledger.</p>'; 
+                console.error("Captain's Review Error:", e); 
+                captainSection.innerHTML = '<p class="text-red-500">Shiver me timbers! The Captain is lost in his thoughts and cannot make a call. Try again.</p>'; 
             }
         }
 
@@ -1207,5 +1203,4 @@
     </script>
 </body>
 </html>
-
 
